@@ -1,16 +1,21 @@
 import React from "react";
 import {
     UserCheck,
-    Settings
+    Settings,
+    Book,
+    PlayCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { routes } from "@/config/routes";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 const DefaultSidebar = () => {
+    const location = useLocation();
     const navItems = [
-        { label: "Yêu cầu BTC", icon: UserCheck, href: routes.organizerRegistration, active: true },
+        { label: "Quản lý sự kiện", icon: Book, href: routes.eventManagement },
+        { label: "Yêu cầu BTC", icon: UserCheck, href: routes.organizerRegistration },
+        { label: "Danh mục", icon: PlayCircle, href: routes.category },
     ];
 
     return (
@@ -30,25 +35,29 @@ const DefaultSidebar = () => {
 
                 {/* Navigation */}
                 <nav className="flex flex-col gap-1.5 flex-1">
-                    {navItems.map((item, index) => (
-                        <Button
-                            key={index}
-                            variant={item.active ? "secondary" : "ghost"}
-                            className={cn(
-                                "w-full justify-start gap-3 h-10 font-medium",
-                                item.active
-                                    ? "bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary font-bold" // Custom active style
-                                    : "text-muted-foreground hover:text-foreground"
-                            )}
-                            asChild
-                        >
-                            <Link to={item.href}>
-                                <item.icon className={cn("size-5", item.active && "stroke-[2.5px]")} />
+                    {navItems.map((item, index) => {
+                        const isActive = location.pathname.startsWith(item.href);
+                        return (
+                            <Button
+                                key={index}
+                                variant={isActive ? "secondary" : "ghost"}
+                                className={cn(
+                                    "w-full justify-start gap-3 h-10 font-medium",
+                                    isActive
+                                        ? "bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary font-bold" // Custom active style
+                                        : "text-muted-foreground hover:text-foreground"
+                                )}
+                                asChild
+                            >
+                                <Link to={item.href}>
+                                    <item.icon className={cn("size-5", isActive && "stroke-[2.5px]")} />
 
-                                {item.label}
-                            </Link>
-                        </Button>
-                    ))}
+                                    {item.label}
+                                </Link>
+                            </Button>
+                        )
+                    }
+                    )}
                 </nav>
 
                 {/* Bottom Actions */}

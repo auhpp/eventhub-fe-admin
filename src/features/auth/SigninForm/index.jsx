@@ -48,7 +48,7 @@ export default function SigninForm() {
                 if (userInfoResponse.code == HttpStatusCode.Ok) {
                     setUser(userInfoResponse.result)
                 }
-                navigate(routes.home, { replace: true })
+                navigate(routes.eventManagement, { replace: true })
             }
         } catch (error) {
             console.log(error)

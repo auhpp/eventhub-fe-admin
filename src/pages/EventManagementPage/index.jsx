@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
     Search, Download, MoreVertical,
-    
     Loader2
 } from "lucide-react";
 
@@ -17,29 +16,29 @@ import {
 import {
     DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { getOrganizerRegistrations } from "@/services/organizerRegistrationService.js";
 import { routes } from "@/config/routes.jsx";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { StatusBadge } from "@/components/StatusBadge";
+import { getEvents } from "@/services/eventService";
 import { HttpStatusCode } from "axios";
 import DefaultPagination from "@/components/DefaultPagination";
 
-const OrganizerRequestPage = () => {
-    const [organizerRegistrations, setOrganizerRegistration] = useState(null)
+const EventManagement = () => {
+    const [events, setEvents] = useState(null)
     const navigate = useNavigate()
     const [totalPages, setTotalPages] = useState(1);
     const [totalElements, setTotalElements] = useState(0);
     const [searchParams, setSearchParams] = useSearchParams();
     const currentPage = parseInt(searchParams.get("page") || "1");
     const pageSize = 2;
-
+    
     useEffect(
         () => {
-            const fetchorganizerRegistrations = async () => {
+            const fetchEvents = async () => {
                 try {
-                    const response = await getOrganizerRegistrations({ page: currentPage, size: pageSize })
+                    const response = await getEvents({ page: currentPage, size: pageSize })
                     if (response.code == HttpStatusCode.Ok) {
-                        setOrganizerRegistration(response.result.data)
+                        setEvents(response.result.data)
                         setTotalPages(response.result.totalPage);
                         setTotalElements(response.result.totalElements);
                     }
@@ -47,11 +46,12 @@ const OrganizerRequestPage = () => {
                     console.log(error)
                 }
             }
-            fetchorganizerRegistrations()
+            fetchEvents()
         }, [currentPage]
     )
+    
 
-    if (!organizerRegistrations) {
+    if (!events) {
         return (
             <div className="flex justify-center items-center h-screen w-full">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -66,10 +66,10 @@ const OrganizerRequestPage = () => {
             <div className="flex flex-col md:flex-row justify-between gap-4 items-start md:items-end">
                 <div className="space-y-1">
                     <h1 className="text-3xl font-black tracking-tight">
-                        Quản lý Yêu cầu Ban Tổ chức
+                        Quản lý sự kiện
                     </h1>
                     <p className="text-muted-foreground text-base">
-                        Xem xét và phê duyệt hồ sơ đăng ký của các đơn vị tổ chức sự kiện.
+                        Xem xét và phê duyệt các sự kiện của các đơn vị tổ chức sự kiện.
                     </p>
                 </div>
                 <Button variant="outline" className="gap-2 shadow-sm">
@@ -77,8 +77,6 @@ const OrganizerRequestPage = () => {
                     Xuất dữ liệu
                 </Button>
             </div>
-
-
 
             {/* Filters & Actions Bar */}
             <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center justify-between">
@@ -124,40 +122,47 @@ const OrganizerRequestPage = () => {
                     <TableHeader>
                         <TableRow className="bg-muted/50">
 
-                            <TableHead className="uppercase text-xs font-semibold">Người đăng ký</TableHead>
-                            <TableHead className="uppercase text-xs font-semibold">Tổ chức / Doanh nghiệp</TableHead>
-                            <TableHead className="uppercase text-xs font-semibold">Ngày gửi</TableHead>
+                            <TableHead className="uppercase text-xs font-semibold">Thông tin sự kiện</TableHead>
+                            <TableHead className="uppercase text-xs font-semibold">Người tổ chức</TableHead>
+                            <TableHead className="uppercase text-xs font-semibold">Địa điểm</TableHead>
                             <TableHead className="uppercase text-xs font-semibold">Trạng thái</TableHead>
-                            {/* <TableHead className="text-right uppercase text-xs font-semibold">Hành động</TableHead> */}
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {organizerRegistrations.map((item) => (
+                        {events.map((item) => (
                             <TableRow key={item.id} className="group hover:bg-muted/50">
 
                                 <TableCell>
                                     <div className="flex items-center gap-3">
-                                        <Avatar>
-                                            <AvatarImage src={item.appUser?.avatar} alt={item.representativeFullName} />
-                                            <AvatarFallback>{item.representativeFullName?.charAt(0)}</AvatarFallback>
-                                        </Avatar>
+                                        <img
+                                            src={item.thumbnail}
+                                            alt="Photo by Drew Beamer"
+                                            fill
+                                            className="w-40 rounded-lg object-cover dark:brightness-[0.2] dark:grayscale"
+                                        />
                                         <div>
-                                            <p className="font-medium text-foreground">{item.representativeFullName}</p>
-                                            <p className="text-sm text-muted-foreground">{item.email}</p>
+                                            <p className="font-medium mb-1 text-foreground">{item.name}</p>
+                                            <span className="text-sm text-muted-foreground bg-gray-100
+                                            p-1 rounded-sm 
+                                            ">{item.category.name}</span>
                                         </div>
                                     </div>
                                 </TableCell>
                                 <TableCell>
-                                    <div className="flex flex-col">
-                                        <span className="font-medium flex items-center gap-2">
-                                            {item.businessName}
-                                        </span>
-                                        {/* <span className="text-sm text-muted-foreground">ID: #{item.id.toString().padStart(6, '0')}</span> */}
+                                    <div className="flex items-center gap-3">
+                                        <Avatar>
+                                            <AvatarImage src={item.appUser?.avatar} alt={item.representativeFullName} />
+                                            <AvatarFallback>{item.appUser.fullName ? item.appUser?.fullName?.charAt(0) : "U"}</AvatarFallback>
+                                        </Avatar>
+                                        <div>
+                                            <p className="font-medium text-foreground">{item.appUser.fullName}</p>
+                                            <p className="text-sm text-muted-foreground">{item.appUser.email}</p>
+                                        </div>
                                     </div>
                                 </TableCell>
                                 <TableCell>
-                                    <span className="text-sm text-muted-foreground">
-                                        {new Date(item.createdAt).toLocaleDateString('vi-VN')}
+                                    <span className="text-sm text">
+                                        {item.location}
                                     </span>
                                 </TableCell>
                                 <TableCell>
@@ -174,7 +179,7 @@ const OrganizerRequestPage = () => {
                                             <DropdownMenuContent align="end">
                                                 <DropdownMenuItem
                                                     onClick={() => {
-                                                        navigate(routes.organizerRegistrationDetail.replace(":id", item.id))
+                                                        navigate(routes.eventDetail.replace(":id", item.id))
                                                     }}
                                                 >Xem chi tiết</DropdownMenuItem>
                                                 {/* <DropdownMenuItem>Gửi email</DropdownMenuItem>
@@ -197,8 +202,9 @@ const OrganizerRequestPage = () => {
                 totalElements={totalElements}
                 pageSize={pageSize}
             />
+
         </div>
     );
 };
 
-export default OrganizerRequestPage;
+export default EventManagement;

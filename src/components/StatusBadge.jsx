@@ -1,4 +1,4 @@
-import { CheckCircle2, XCircle } from "lucide-react";
+import { CheckCircle2, Clock, XCircle } from "lucide-react";
 import { Badge } from "./ui/badge";
 
 export const StatusBadge = ({ status }) => {
@@ -6,7 +6,7 @@ export const StatusBadge = ({ status }) => {
         case "PENDING":
             return (
                 <Badge variant="outline" className="bg-yellow-100 text-yellow-700 border-yellow-200 gap-1.5 whitespace-nowrap">
-                    <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse" />
+                    <Clock className="w-3.5 h-3.5" />
                     Chờ duyệt
                 </Badge>
             );

@@ -5,6 +5,7 @@ export const routes = {
     profile: "/profile",
     organizerRegistration: "/organizer-registration",
     organizerRegistrationDetail: "/organizer-registration/:id",
-
-
+    eventManagement: "/event",
+    eventDetail: "/event/:id",
+    category: "/category"
 }

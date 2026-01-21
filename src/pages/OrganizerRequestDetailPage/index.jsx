@@ -311,6 +311,7 @@ const OrganizerRequestDetail = () => {
                 isOpen={isRejectModalOpen}
                 onClose={() => setRejectModalOpen(false)}
                 onConfirm={handleRejectSubmit}
+                title={"Từ chối yêu cầu đăng ký"}
             />
         </div>
     );

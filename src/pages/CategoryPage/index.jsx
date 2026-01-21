@@ -1,32 +1,31 @@
 import React, { useEffect, useState } from "react";
 import {
-    Search, Download, MoreVertical,
-    
-    Loader2
+    Search, MoreVertical,
+
+    Loader2,
+    Plus
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import {
     Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from "@/components/ui/table";
 import {
-    Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-import {
     DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { getOrganizerRegistrations } from "@/services/organizerRegistrationService.js";
-import { routes } from "@/config/routes.jsx";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { StatusBadge } from "@/components/StatusBadge";
+import CreateCategoryModal from "@/features/category/CreateCategoryModal";
+import { createCategory, getCategorisPagination, } from "@/services/categoryService";
 import { HttpStatusCode } from "axios";
+import { useSearchParams } from "react-router-dom";
 import DefaultPagination from "@/components/DefaultPagination";
 
-const OrganizerRequestPage = () => {
-    const [organizerRegistrations, setOrganizerRegistration] = useState(null)
-    const navigate = useNavigate()
+const CategoryPage = () => {
+    const [categories, setCategories] = useState(null)
+    const [showCreateModal, setShowCreateModal] = useState(false)
+    const [isLoading, setIsLoading] = useState(false);
+    const [isLoadingData, setIsLoadingData] = useState(false)
     const [totalPages, setTotalPages] = useState(1);
     const [totalElements, setTotalElements] = useState(0);
     const [searchParams, setSearchParams] = useSearchParams();
@@ -35,11 +34,11 @@ const OrganizerRequestPage = () => {
 
     useEffect(
         () => {
-            const fetchorganizerRegistrations = async () => {
+            const fetchCategories = async () => {
                 try {
-                    const response = await getOrganizerRegistrations({ page: currentPage, size: pageSize })
+                    const response = await getCategorisPagination({ page: currentPage, size: pageSize })
                     if (response.code == HttpStatusCode.Ok) {
-                        setOrganizerRegistration(response.result.data)
+                        setCategories(response.result.data)
                         setTotalPages(response.result.totalPage);
                         setTotalElements(response.result.totalElements);
                     }
@@ -47,16 +46,34 @@ const OrganizerRequestPage = () => {
                     console.log(error)
                 }
             }
-            fetchorganizerRegistrations()
-        }, [currentPage]
+            fetchCategories()
+        }, [isLoadingData, currentPage]
     )
 
-    if (!organizerRegistrations) {
+    if (!categories) {
         return (
             <div className="flex justify-center items-center h-screen w-full">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
         )
+    }
+
+    const onSubmit = async (values, form, setImagePreview) => {
+        setIsLoading(true);
+        try {
+            console.log(values)
+            const response = await createCategory({ name: values.name, avatar: values.avatar[0], description: values.description })
+            if (response.code == HttpStatusCode.Ok) {
+                form.reset();
+                setImagePreview(null);
+                setShowCreateModal(false);
+                setIsLoadingData(prev => !prev)
+            }
+        } catch (error) {
+            console.error("Failed to create category", error);
+        } finally {
+            setIsLoading(false);
+        }
     }
     return (
 
@@ -66,18 +83,21 @@ const OrganizerRequestPage = () => {
             <div className="flex flex-col md:flex-row justify-between gap-4 items-start md:items-end">
                 <div className="space-y-1">
                     <h1 className="text-3xl font-black tracking-tight">
-                        Quản lý Yêu cầu Ban Tổ chức
+                        Danh mục sự kiện
                     </h1>
                     <p className="text-muted-foreground text-base">
-                        Xem xét và phê duyệt hồ sơ đăng ký của các đơn vị tổ chức sự kiện.
+                        Quản lý danh sách danh mục sự kiện trong hệ thống
                     </p>
                 </div>
-                <Button variant="outline" className="gap-2 shadow-sm">
-                    <Download size={16} />
-                    Xuất dữ liệu
-                </Button>
+                <div className="flex gap-2">
+                    <Button
+                        onClick={() => setShowCreateModal(true)}
+                        className="gap-2 shadow-sm">
+                        <Plus size={16} />
+                        Thêm danh mục
+                    </Button>
+                </div>
             </div>
-
 
 
             {/* Filters & Actions Bar */}
@@ -86,36 +106,11 @@ const OrganizerRequestPage = () => {
                 <div className="relative flex-1 max-w-lg">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder="Tìm kiếm theo tên, email hoặc tổ chức..."
+                        placeholder="Tìm kiếm theo tên..."
                         className="pl-9 bg-card"
                     />
                 </div>
 
-                {/* Filters Select */}
-                <div className="flex gap-3">
-                    <Select defaultValue="all">
-                        <SelectTrigger className="w-[180px] bg-card">
-                            <SelectValue placeholder="Trạng thái" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                            <SelectItem value="pending">Chờ duyệt</SelectItem>
-                            <SelectItem value="approved">Đã phê duyệt</SelectItem>
-                            <SelectItem value="rejected">Từ chối</SelectItem>
-                        </SelectContent>
-                    </Select>
-
-                    <Select defaultValue="newest">
-                        <SelectTrigger className="w-[160px] bg-card">
-                            <SelectValue placeholder="Sắp xếp" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="newest">Mới nhất</SelectItem>
-                            <SelectItem value="oldest">Cũ nhất</SelectItem>
-                            <SelectItem value="az">A-Z</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
             </div>
 
             {/* Data Table */}
@@ -123,46 +118,35 @@ const OrganizerRequestPage = () => {
                 <Table>
                     <TableHeader>
                         <TableRow className="bg-muted/50">
-
-                            <TableHead className="uppercase text-xs font-semibold">Người đăng ký</TableHead>
-                            <TableHead className="uppercase text-xs font-semibold">Tổ chức / Doanh nghiệp</TableHead>
-                            <TableHead className="uppercase text-xs font-semibold">Ngày gửi</TableHead>
-                            <TableHead className="uppercase text-xs font-semibold">Trạng thái</TableHead>
-                            {/* <TableHead className="text-right uppercase text-xs font-semibold">Hành động</TableHead> */}
+                            <TableHead className="uppercase text-xs font-semibold">Ảnh</TableHead>
+                            <TableHead className="uppercase text-xs font-semibold">Tên</TableHead>
+                            <TableHead className="uppercase text-xs font-semibold">Mô tả</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {organizerRegistrations.map((item) => (
+                        {categories.map((item) => (
                             <TableRow key={item.id} className="group hover:bg-muted/50">
 
                                 <TableCell>
                                     <div className="flex items-center gap-3">
-                                        <Avatar>
-                                            <AvatarImage src={item.appUser?.avatar} alt={item.representativeFullName} />
-                                            <AvatarFallback>{item.representativeFullName?.charAt(0)}</AvatarFallback>
+                                        <Avatar className="rounded-lg">
+                                            <AvatarImage src={item.avatarUrl} alt={item.name} />
                                         </Avatar>
-                                        <div>
-                                            <p className="font-medium text-foreground">{item.representativeFullName}</p>
-                                            <p className="text-sm text-muted-foreground">{item.email}</p>
-                                        </div>
                                     </div>
                                 </TableCell>
                                 <TableCell>
                                     <div className="flex flex-col">
                                         <span className="font-medium flex items-center gap-2">
-                                            {item.businessName}
+                                            {item.name}
                                         </span>
-                                        {/* <span className="text-sm text-muted-foreground">ID: #{item.id.toString().padStart(6, '0')}</span> */}
                                     </div>
                                 </TableCell>
                                 <TableCell>
                                     <span className="text-sm text-muted-foreground">
-                                        {new Date(item.createdAt).toLocaleDateString('vi-VN')}
+                                        {item.description}
                                     </span>
                                 </TableCell>
-                                <TableCell>
-                                    <StatusBadge status={item.status} />
-                                </TableCell>
+
                                 <TableCell className="text-right">
                                     <div className="flex items-center justify-end gap-1">
                                         <DropdownMenu>
@@ -174,11 +158,8 @@ const OrganizerRequestPage = () => {
                                             <DropdownMenuContent align="end">
                                                 <DropdownMenuItem
                                                     onClick={() => {
-                                                        navigate(routes.organizerRegistrationDetail.replace(":id", item.id))
                                                     }}
-                                                >Xem chi tiết</DropdownMenuItem>
-                                                {/* <DropdownMenuItem>Gửi email</DropdownMenuItem>
-                                                <DropdownMenuItem className="text-destructive">Xóa yêu cầu</DropdownMenuItem> */}
+                                                >Chỉnh sửa</DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     </div>
@@ -197,8 +178,15 @@ const OrganizerRequestPage = () => {
                 totalElements={totalElements}
                 pageSize={pageSize}
             />
+            <CreateCategoryModal
+                isLoading={isLoading}
+                onSubmit={onSubmit}
+                open={showCreateModal}
+                setOpen={setShowCreateModal}
+                setIsLoading={setIsLoading}
+            />
         </div>
     );
 };
 
-export default OrganizerRequestPage;
+export default CategoryPage;

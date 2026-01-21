@@ -1,3 +1,4 @@
+import { Toaster } from "@/components/ui/sonner";
 import DefaultHeader from "../DefaultHeader";
 import DefaultSidebar from "../DefaultSideBar";
 
@@ -17,7 +18,14 @@ const DefaultLayout = ({ children }) => {
                 <div className="flex-1 overflow-y-auto bg-background/50 px-6 pt-4">
                     {children}
                 </div>
+                <Toaster position="top-center" richColors
+                    toastOptions={{
+                        classNames: {
+                            error: "bg-red-100 text-white",
 
+                        },
+                    }}
+                />
             </main>
         </div>
     );

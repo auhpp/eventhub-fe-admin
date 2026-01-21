@@ -4,13 +4,18 @@ import SigninPage from "@/pages/SigninPage"
 import DefaultLayout from "@/layouts/DefaultLayout"
 import OrganizerRequestPage from "@/pages/OrganizerRequestPage"
 import OrganizerRequestDetailPage from "@/pages/OrganizerRequestDetailPage"
+import EventManagement from "@/pages/EventManagementPage"
+import EventDetailPage from "@/pages/EventDetailPage"
+import CategoryPage from "@/pages/CategoryPage"
 
 export const publicRoutes = [
     { path: routes.signin, page: SigninPage, layout: AuthLayout },
+]
+
+export const privateRoutes = [
     { path: routes.organizerRegistration, page: OrganizerRequestPage, layout: DefaultLayout },
     { path: routes.organizerRegistrationDetail, page: OrganizerRequestDetailPage, layout: DefaultLayout },
-
-
+    { path: routes.eventManagement, page: EventManagement, layout: DefaultLayout },
+    { path: routes.eventDetail, page: EventDetailPage, layout: DefaultLayout },
+    { path: routes.category, page: CategoryPage, layout: DefaultLayout },
 ]
-export const privateRoutes = []
-export const adminRoutes = []

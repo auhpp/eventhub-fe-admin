@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Info } from "lucide-react";
 
-const RejectReasonModal = ({ isOpen, onClose, onConfirm }) => {
+const RejectReasonModal = ({ isOpen, onClose, onConfirm, title }) => {
     const [reason, setReason] = useState("");
     const [error, setError] = useState("");
 
@@ -39,7 +39,7 @@ const RejectReasonModal = ({ isOpen, onClose, onConfirm }) => {
                 {/* Header */}
                 <DialogHeader className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex flex-row items-center justify-between">
                     <DialogTitle className="text-lg font-bold text-gray-900 dark:text-white">
-                        Từ chối yêu cầu đăng ký
+                        {title}
                     </DialogTitle>
                 </DialogHeader>
 
@@ -55,7 +55,7 @@ const RejectReasonModal = ({ isOpen, onClose, onConfirm }) => {
 
                         <Textarea
                             id="reason"
-                            placeholder="Nhập lý do cụ thể (ví dụ: Thông tin không chính xác, thiếu giấy tờ pháp lý...) để gửi thông báo cho người dùng"
+                            placeholder="Nhập lý do cụ thể để gửi thông báo cho người dùng"
                             className={`min-h-[120px] resize-none text-sm ${error ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                             value={reason}
                             onChange={(e) => {
@@ -68,7 +68,7 @@ const RejectReasonModal = ({ isOpen, onClose, onConfirm }) => {
                     </div>
 
                     {/* Info Note */}
-                    <div className="flex items-start gap-2 text-gray-500 dark:text-gray-400">
+                    <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
                         <Info className="w-4 h-4 mt-0.5 flex-shrink-0" />
                         <p className="text-xs">
                             Lý do này sẽ được gửi qua email cho người gửi yêu cầu.

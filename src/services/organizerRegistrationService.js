@@ -1,7 +1,7 @@
 import API from "@/config/api";
 
-export const getOrganizerRegistrations = async () => {
-    const response = await API.get('/api/v1/organizer-registration', {
+export const getOrganizerRegistrations = async ({ page, size }) => {
+    const response = await API.get(`/api/v1/organizer-registration?page=${page}&size=${size}`, {
         requiresAuth: true
     });
     return response.data;
