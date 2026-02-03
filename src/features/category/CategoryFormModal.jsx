@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Loader2, Plus, Save, UploadCloud, X } from 'lucide-react'; 
+import { Loader2, Save, UploadCloud } from 'lucide-react';
 import {
     Dialog,
     DialogContent,
@@ -10,7 +10,6 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from '@/components/ui/dialog';
 import {
     Form,
@@ -24,27 +23,50 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 
-const formSchema = z.object({
+const createSchema = z.object({
     name: z.string().min(1, { message: "Nhập tên danh mục" }),
     description: z.string().optional(),
-    avatar: z
-        .any()
-        .refine((files) => files instanceof FileList && files.length > 0, {
-            message: "Tải ảnh danh mục lên",
-        }),
+    avatar: z.any().refine((files) => files instanceof FileList && files.length > 0, {
+        message: "Tải ảnh danh mục lên",
+    }),
 });
 
-export default function CreateCategoryModal({ open, setOpen, onSubmit, isLoading }) {
-    const [imagePreview, setImagePreview] = useState(null);
+const updateSchema = z.object({
+    name: z.string().min(1, { message: "Nhập tên danh mục" }),
+    description: z.string().optional(),
+    avatar: z.any().optional(), 
+});
 
+export default function CategoryFormModal({ open, setOpen, onSubmit, isLoading, initialData }) {
+    const [imagePreview, setImagePreview] = useState(null);
+    const isEditMode = !!initialData;
     const form = useForm({
-        resolver: zodResolver(formSchema),
+        resolver: zodResolver(isEditMode ? updateSchema : createSchema),
         defaultValues: {
             name: '',
             description: '',
             avatar: undefined,
         },
     });
+    useEffect(() => {
+        if (open) {
+            if (initialData) {
+                form.reset({
+                    name: initialData.name,
+                    description: initialData.description || '',
+                });
+                // eslint-disable-next-line react-hooks/set-state-in-effect
+                setImagePreview(initialData.avatarUrl); 
+            } else {
+                form.reset({
+                    name: '',
+                    description: '',
+                    avatar: undefined,
+                });
+                setImagePreview(null);
+            }
+        }
+    }, [open, initialData, form]);
 
     const handleImageChange = (e, fieldChange) => {
         const file = e.target.files[0];
@@ -58,7 +80,7 @@ export default function CreateCategoryModal({ open, setOpen, onSubmit, isLoading
         }
     };
 
-    const createCategory = (values) => {
+    const handleSubmit = (values) => {
         onSubmit(values, form, setImagePreview)
     }
 
@@ -66,14 +88,14 @@ export default function CreateCategoryModal({ open, setOpen, onSubmit, isLoading
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
-                    <DialogTitle>Tạo mới danh mục</DialogTitle>
+                    <DialogTitle>{isEditMode ? "Cập nhật danh mục" : "Tạo mới danh mục"}</DialogTitle>
                     <DialogDescription>
-                        Thêm một danh mục mới cho hệ thống
+                        {isEditMode ? "Chỉnh sửa thông tin danh mục hiện tại" : "Thêm một danh mục mới cho hệ thống"}
                     </DialogDescription>
                 </DialogHeader>
 
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(createCategory)} className="space-y-4">
+                    <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
 
                         <FormField
                             control={form.control}
@@ -82,7 +104,7 @@ export default function CreateCategoryModal({ open, setOpen, onSubmit, isLoading
                             render={({ field: { value, onChange, ...fieldProps } }) => (
                                 <FormItem className="flex flex-col items-center justify-center gap-3">
                                     <FormLabel className="text-center">
-                                        Ảnh danh mục <span className="text-red-500">*</span>
+                                        Ảnh danh mục {!isEditMode && <span className="text-red-500">*</span>}
                                     </FormLabel>
 
                                     <FormControl>
@@ -116,7 +138,6 @@ export default function CreateCategoryModal({ open, setOpen, onSubmit, isLoading
                                             />
                                         </div>
                                     </FormControl>
-
                                     <FormMessage className="text-xs text-center" />
                                 </FormItem>
                             )}
@@ -160,8 +181,8 @@ export default function CreateCategoryModal({ open, setOpen, onSubmit, isLoading
                             </Button>
                             <Button type="submit" disabled={isLoading}>
                                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                <Save />
-                                Lưu danh mục
+                                <Save className="mr-2 h-4 w-4" />
+                                {isEditMode ? "Cập nhật" : "Lưu danh mục"}
                             </Button>
                         </DialogFooter>
                     </form>

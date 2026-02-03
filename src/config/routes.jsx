@@ -7,5 +7,6 @@ export const routes = {
     organizerRegistrationDetail: "/organizer-registration/:id",
     eventManagement: "/event",
     eventDetail: "/event/:id",
-    category: "/category"
+    category: "/category",
+    setting: "/setting"
 }

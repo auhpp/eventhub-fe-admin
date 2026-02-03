@@ -63,12 +63,17 @@ const DefaultSidebar = () => {
                 {/* Bottom Actions */}
                 <div className="mt-auto pt-4 border-t border-border">
                     <Button
-                        variant="ghost"
-                        className="w-full justify-start gap-3 h-10 text-muted-foreground hover:text-foreground font-medium"
+                        variant={location.pathname.startsWith(routes.setting) ? "secondary" : "ghost"}
+                        className={cn(
+                            "w-full justify-start gap-3 h-10 font-medium",
+                            location.pathname.startsWith(routes.setting)
+                                ? "bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary font-bold" // Custom active style
+                                : "text-muted-foreground hover:text-foreground"
+                        )}
                         asChild
                     >
-                        <Link to="#">
-                            <Settings className="size-5" />
+                        <Link to={routes.setting}>
+                            <Settings className={cn("size-5", location.pathname.startsWith(routes.setting) && "stroke-[2.5px]")} />
                             Cài đặt
                         </Link>
                     </Button>

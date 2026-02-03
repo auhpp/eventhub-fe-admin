@@ -30,7 +30,7 @@ const EventManagement = () => {
     const [totalElements, setTotalElements] = useState(0);
     const [searchParams, setSearchParams] = useSearchParams();
     const currentPage = parseInt(searchParams.get("page") || "1");
-    const pageSize = 2;
+    const pageSize = 4;
     
     useEffect(
         () => {

@@ -44,7 +44,6 @@ const EventDetailPage = () => {
     const [eventCommissionRate, setEventCommissionRate] = useState(null)
     const [eventCommissionFixed, setEventCommissionFixed] = useState(null)
     const [isLoading, setIsLoading] = useState(false);
-
     useEffect(
         () => {
             const fetchEventById = async () => {
@@ -103,6 +102,8 @@ const EventDetailPage = () => {
         )
     }
 
+    const isOnline = event.type === EventType.ONLINE.key
+
     // Calculate earliest start date  from sessions
     const earliestStart = event.eventSessions?.length > 0
         ? event.eventSessions.reduce((min, session) => session.startDateTime < min ? session.startDateTime : min, event.eventSessions[0].startDateTime)
@@ -147,7 +148,7 @@ const EventDetailPage = () => {
 
     };
     return (
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-50/50 dark:bg-slate-950">
+        <div className="flex-1 overflow-y-auto p-2 md:p-2 dark:bg-slate-950">
             <div className="max-w-6xl mx-auto space-y-6">
                 {/* Header Section */}
                 <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
@@ -211,14 +212,14 @@ const EventDetailPage = () => {
 
                         {/* Tickets Information*/}
                         <Card>
-                            <CardHeader>
+                            <CardHeader className="px-4">
                                 <CardTitle className="flex items-center gap-2 text-xl">
                                     <Ticket className="w-5 h-5 text-primary" />
                                     Thông tin vé
                                 </CardTitle>
                                 <CardDescription>Danh sách các loại vé trong sự kiện này</CardDescription>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="px-4">
                                 {event.eventSessions?.map((session) => (
                                     <div key={session.id} className="mb-6 last:mb-0">
                                         <h4 className=" text-sm mb-3 flex items-center gap-2">
@@ -280,26 +281,30 @@ const EventDetailPage = () => {
                         </Card>
 
                         {/* Location */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2 text-xl">
-                                    <MapPin className="w-5 h-5 text-primary" />
-                                    {event.type === EventType.ONLINE ? 'Thông tin phòng họp' : 'Địa điểm tổ chức'}
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div
-                                    className="bg-slate-100 dark:bg-slate-800 h-64 rounded-lg flex items-center 
+                        {
+                            !isOnline &&
+                            <Card >
+                                <CardHeader className="px-4">
+                                    <CardTitle className="flex items-center gap-2 text-xl">
+                                        <MapPin className="w-5 h-5 text-primary" />
+                                        {isOnline ? 'Thông tin phòng họp' : 'Địa điểm tổ chức'}
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="px-4">
+
+                                    <div
+                                        className="bg-slate-100 dark:bg-slate-800 h-64 rounded-lg flex items-center 
                                 justify-center relative overflow-hidden"
-                                >
-                                    <Map
-                                        lat={event.locationCoordinates.latitude}
-                                        lng={event.locationCoordinates.longitude}
-                                        address={event.location}
-                                    />
-                                </div>
-                            </CardContent>
-                        </Card>
+                                    >
+                                        <Map
+                                            lat={event.locationCoordinates.latitude}
+                                            lng={event.locationCoordinates.longitude}
+                                            address={event.location}
+                                        />
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        }
                     </div>
 
                     {/* RIGHT COLUMN (Sidebar/Sticky) */}

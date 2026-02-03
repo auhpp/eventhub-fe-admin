@@ -193,10 +193,14 @@ const OrganizerRequestDetail = () => {
                                     <div className="space-y-1">
                                         <label className="text-xs font-semibold text-muted-foreground uppercase">
                                             Địa chỉ trụ sở</label>
-                                        <p className="text-sm font-medium flex items-center gap-2">
-                                            <MapPin size={16} className="text-muted-foreground" />
-                                            {organizerRegistration.contactAddress}
-                                        </p>
+                                        <div className="text-sm font-medium flex items-center gap-2">
+                                            <div>
+                                                <MapPin size={16} className="text-muted-foreground" />
+                                            </div>
+                                            <span>
+                                                {organizerRegistration.contactAddress}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
