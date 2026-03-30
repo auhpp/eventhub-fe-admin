@@ -19,8 +19,8 @@ export const createCategory = async ({ name, avatar, description }) => {
     return response.data;
 };
 
-export const getCategorisPagination = async ({ page, size }) => {
-    const response = await API.get(`/api/v1/category?page=${page}&size=${size}`, {
+export const getCategorisPagination = async ({ name, sortOrder, sortBy, page, size }) => {
+    const response = await API.post(`/api/v1/category/filter?page=${page}&size=${size}`, { name, sortOrder, sortBy }, {
         requiresAuth: true
     });
     return response.data;
@@ -49,6 +49,13 @@ export const updateCategory = async ({ id, data }) => {
 
 export const deleteCategory = async ({ id }) => {
     const response = await API.delete(`/api/v1/category/${id}`, {
+        requiresAuth: true
+    });
+    return response.data;
+};
+
+export const getCategoris = async () => {
+    const response = await API.get('/api/v1/category/all', {
         requiresAuth: true
     });
     return response.data;

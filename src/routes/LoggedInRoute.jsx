@@ -16,7 +16,7 @@ const LoggedInRoute = () => {
     }
 
     if (token || user) {
-        return <Navigate to={routes.eventManagement} />;
+        return <Navigate to={routes.overview} />;
     }
     else {
         return <Outlet />

@@ -1,5 +1,6 @@
 import React from "react";
 import Header from "../AuthHeader";
+import { Toaster } from "sonner";
 
 const AuthLayout = ({ children }) => {
     return (
@@ -10,6 +11,14 @@ const AuthLayout = ({ children }) => {
                 <div className="w-full max-w-md animate-in fade-in zoom-in duration-300">
                     {children}
                 </div>
+                <Toaster position="top-center" richColors
+                    toastOptions={{
+                        classNames: {
+                            error: "bg-red-100 text-white",
+
+                        },
+                    }}
+                />
             </main>
         </div>
     );

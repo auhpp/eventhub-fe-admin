@@ -3,7 +3,12 @@ import {
     UserCheck,
     Settings,
     Book,
-    PlayCircle
+    PlayCircle,
+    Ticket,
+    Tag,
+    User,
+    ChartBar,
+    Table
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -13,9 +18,14 @@ import { Link, useLocation } from "react-router-dom";
 const DefaultSidebar = () => {
     const location = useLocation();
     const navItems = [
+        { label: "Tổng quan", icon: Table, href: routes.overview },
         { label: "Quản lý sự kiện", icon: Book, href: routes.eventManagement },
         { label: "Yêu cầu BTC", icon: UserCheck, href: routes.organizerRegistration },
         { label: "Danh mục", icon: PlayCircle, href: routes.category },
+        { label: "Bán lại vé", icon: Ticket, href: routes.resalePost },
+        { label: "Tag", icon: Tag, href: routes.tag },
+        { label: "Tài khoản", icon: User, href: routes.user },
+        { label: "Thống kê", icon: ChartBar, href: routes.stats },
     ];
 
     return (

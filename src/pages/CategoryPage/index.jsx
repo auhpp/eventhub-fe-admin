@@ -24,6 +24,9 @@ import DefaultPagination from "@/components/DefaultPagination";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import CategoryFormModal from "@/features/category/CategoryFormModal";
 import { toast } from "sonner";
+import { SortBy, SortOrder } from "@/utils/constant";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import RefreshButton from "@/components/RefreshButton";
 
 const CategoryPage = () => {
     const [categories, setCategories] = useState(null)
@@ -39,24 +42,37 @@ const CategoryPage = () => {
     const [totalElements, setTotalElements] = useState(0);
     const [searchParams, setSearchParams] = useSearchParams();
     const currentPage = parseInt(searchParams.get("page") || "1");
-    const pageSize = 2;
+    const pageSize = 10;
+    const sortOrderFilter = searchParams.get("sortOrder") || SortOrder.DESCENDING;
+    const sortByFilter = searchParams.get("sortBy") || SortBy.FOLLOWER;
+    const query = searchParams.get("query") || "";
 
+    const fetchCategories = async () => {
+        try {
+            setIsLoading(true)
+            const response = await getCategorisPagination({
+                name: query,
+                sortOrder: sortOrderFilter,
+                sortBy: sortByFilter,
+                page: currentPage, size: pageSize
+            })
+            if (response.code == HttpStatusCode.Ok) {
+                setCategories(response.result.data)
+                setTotalPages(response.result.totalPage);
+                setTotalElements(response.result.totalElements);
+            }
+
+        } catch (error) {
+            console.log(error)
+        }
+        finally {
+            setIsLoading(false)
+        }
+    }
     useEffect(
         () => {
-            const fetchCategories = async () => {
-                try {
-                    const response = await getCategorisPagination({ page: currentPage, size: pageSize })
-                    if (response.code == HttpStatusCode.Ok) {
-                        setCategories(response.result.data)
-                        setTotalPages(response.result.totalPage);
-                        setTotalElements(response.result.totalElements);
-                    }
-                } catch (error) {
-                    console.log(error)
-                }
-            }
             fetchCategories()
-        }, [isLoadingData, currentPage]
+        }, [isLoadingData, currentPage, sortOrderFilter, query, sortByFilter]
     )
 
     const handleCreate = () => {
@@ -70,7 +86,25 @@ const CategoryPage = () => {
         setShowModal(true);
     };
 
-    if (!categories) {
+    const handleFilterChange = (e, param) => {
+        setSearchParams(params => {
+            params.set(param, e);
+            params.set("page", "1");
+            return params;
+        });
+    }
+
+    const handleSearchByName = (e) => {
+        if (e.key === 'Enter') {
+            setSearchParams(params => {
+                params.set('query', e.target.value);
+                params.set("page", "1");
+                return params;
+            });
+        }
+    };
+
+    if (!categories || isLoading) {
         return (
             <div className="flex justify-center items-center h-screen w-full">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -128,11 +162,11 @@ const CategoryPage = () => {
     };
 
     return (
-        <div className="p-2 md:p-6 space-y-6">
+        <div className="p-2 space-y-6">
             {/* Header Section */}
             <div className="flex flex-col md:flex-row justify-between gap-4 items-start md:items-end">
                 <div className="space-y-1">
-                    <h1 className="text-3xl font-black tracking-tight">Danh mục sự kiện</h1>
+                    <h1 className="text-2xl font-black tracking-tight">Danh mục sự kiện</h1>
                     <p className="text-muted-foreground text-base">
                         Quản lý danh sách danh mục sự kiện trong hệ thống
                     </p>
@@ -141,6 +175,10 @@ const CategoryPage = () => {
                     <Button onClick={handleCreate} className="gap-2 shadow-sm">
                         <Plus size={16} /> Thêm danh mục
                     </Button>
+                    <RefreshButton
+                        isLoading={isLoading}
+                        onClick={fetchCategories}
+                    />
                 </div>
             </div>
 
@@ -148,7 +186,30 @@ const CategoryPage = () => {
             <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center justify-between">
                 <div className="relative flex-1 max-w-lg">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input placeholder="Tìm kiếm theo tên..." className="pl-9 bg-card" />
+                    <Input placeholder="Tìm kiếm theo tên..." className="pl-9 bg-card"
+                        onKeyDown={handleSearchByName}
+                        defaultValue={query}
+                    />
+                </div>
+                <div className="flex gap-6">
+                    <Select value={sortByFilter} onValueChange={(e) => handleFilterChange(e, "sortBy")} >
+                        <SelectTrigger className="w-[180px] bg-card">
+                            <SelectValue placeholder="Trạng thái" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value={SortBy.EVENT}>Sự kiện</SelectItem>
+                            <SelectItem value={SortBy.FOLLOWER}>Lượt theo dõi</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <Select value={sortOrderFilter} onValueChange={(e) => handleFilterChange(e, "sortOrder")} >
+                        <SelectTrigger className="w-[180px] bg-card">
+                            <SelectValue placeholder="Trạng thái" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value={SortOrder.ASCENDING}>Tăng dần</SelectItem>
+                            <SelectItem value={SortOrder.DESCENDING}>Giảm dần</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
             </div>
 
@@ -160,6 +221,8 @@ const CategoryPage = () => {
                             <TableHead className="uppercase text-xs font-semibold">Ảnh</TableHead>
                             <TableHead className="uppercase text-xs font-semibold">Tên</TableHead>
                             <TableHead className="uppercase text-xs font-semibold">Mô tả</TableHead>
+                            <TableHead className="uppercase text-xs font-semibold">Theo dõi</TableHead>
+                            <TableHead className="uppercase text-xs font-semibold">Sự kiện</TableHead>
                             <TableHead className="uppercase text-xs font-semibold text-right">Hành động</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -178,6 +241,12 @@ const CategoryPage = () => {
                                     <span className="text-sm text-muted-foreground line-clamp-1">
                                         {item.description}
                                     </span>
+                                </TableCell>
+                                <TableCell>
+                                    <p className="text-center">{item.followerCount}</p>
+                                </TableCell>
+                                <TableCell>
+                                    <p className="text-center">{item.eventCount}</p>
                                 </TableCell>
                                 <TableCell className="text-right">
                                     <DropdownMenu>

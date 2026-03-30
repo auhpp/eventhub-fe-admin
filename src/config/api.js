@@ -1,7 +1,8 @@
 import axios from 'axios';
+const baseURL = import.meta.env.VITE_BASE_URL
 
 const API = axios.create({
-    baseURL: 'http://localhost:8080',
+    baseURL: baseURL,
     withCredentials: true,
 });
 
@@ -62,11 +63,10 @@ API.interceptors.response.use(
 
             try {
                 const res = await axios.post(
-                    'http://localhost:8080/auth/refresh',
+                    `${baseURL}/api/v1/auth/refresh`,
                     {},
                     { withCredentials: true }
                 );
-
                 const newToken = res.data.result.accessToken;
                 localStorage.setItem('access_token', newToken);
                 API.defaults.headers.Authorization = 'Bearer ' + newToken;
@@ -78,12 +78,12 @@ API.interceptors.response.use(
                 processQueue(err, null);
                 localStorage.removeItem('access_token');
                 window.location.href = '/signin';
-                // return Promise.reject(err);
+                return Promise.reject(err);
             } finally {
                 isRefreshing = false;
             }
         }
-        // return Promise.reject(error);
+        return Promise.reject(error);
 
     }
 );

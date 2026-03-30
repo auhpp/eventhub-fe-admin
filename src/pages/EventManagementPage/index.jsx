@@ -22,6 +22,10 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { getEvents } from "@/services/eventService";
 import { HttpStatusCode } from "axios";
 import DefaultPagination from "@/components/DefaultPagination";
+import { EventStatus, SortType } from "@/utils/constant";
+import { getCategoris } from "@/services/categoryService";
+import { isValidEmail } from "@/utils/validate";
+import RefreshButton from "@/components/RefreshButton";
 
 const EventManagement = () => {
     const [events, setEvents] = useState(null)
@@ -30,28 +34,85 @@ const EventManagement = () => {
     const [totalElements, setTotalElements] = useState(0);
     const [searchParams, setSearchParams] = useSearchParams();
     const currentPage = parseInt(searchParams.get("page") || "1");
+    const categoryIdFilter = searchParams.get("categoryId") || 'ALL';
+    const statusFilter = searchParams.get("status") || 'ALL';
+    const sortTypeFilter = searchParams.get("sortType") || SortType.NEWEST;
+    const query = searchParams.get("query") || "";
+    const [isLoading, setIsLoding] = useState(false);
+
     const pageSize = 4;
-    
+    const [categories, setCategories] = useState(null);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const categoryRes = await getCategoris()
+
+                if (categoryRes.code === HttpStatusCode.Ok) {
+                    setCategories(categoryRes.result);
+                }
+            } catch (error) {
+                console.log(error);
+            }
+        }
+        fetchData();
+    }, []);
+
+    const fetchEvents = async () => {
+        try {
+            setIsLoding(true)
+            var request = {
+                status: statusFilter == "ALL" ? null : statusFilter,
+                categoryIds: categoryIdFilter == "ALL" ? null : [categoryIdFilter],
+                sortType: sortTypeFilter,
+            }
+            if (isValidEmail(query)) {
+                request.email = query
+            }
+            else {
+                request.name = query
+            }
+            const response = await getEvents({
+                request,
+                page: currentPage, size: pageSize
+            })
+            if (response.code == HttpStatusCode.Ok) {
+                setEvents(response.result.data)
+                setTotalPages(response.result.totalPage);
+                setTotalElements(response.result.totalElements);
+            }
+        } catch (error) {
+            console.log(error)
+        }
+        finally {
+            setIsLoding(false)
+        }
+    }
     useEffect(
         () => {
-            const fetchEvents = async () => {
-                try {
-                    const response = await getEvents({ page: currentPage, size: pageSize })
-                    if (response.code == HttpStatusCode.Ok) {
-                        setEvents(response.result.data)
-                        setTotalPages(response.result.totalPage);
-                        setTotalElements(response.result.totalElements);
-                    }
-                } catch (error) {
-                    console.log(error)
-                }
-            }
             fetchEvents()
-        }, [currentPage]
+        }, [currentPage, statusFilter, categoryIdFilter, sortTypeFilter, query]
     )
-    
 
-    if (!events) {
+    const handleFilterChange = (e, param) => {
+        setSearchParams(params => {
+            params.set(param, e);
+            params.set("page", "1");
+            return params;
+        });
+    }
+
+    const handleSearchByName = (e) => {
+        if (e.key === 'Enter') {
+            setSearchParams(params => {
+                params.set('query', e.target.value);
+                params.set("page", "1");
+                return params;
+            });
+        }
+    };
+
+    if (!events || !categories || isLoading) {
         return (
             <div className="flex justify-center items-center h-screen w-full">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -60,22 +121,28 @@ const EventManagement = () => {
     }
     return (
 
-        <div className="p-2 md:p-6 space-y-6">
+        <div className="p-2  space-y-6">
 
             {/* Header Section */}
             <div className="flex flex-col md:flex-row justify-between gap-4 items-start md:items-end">
                 <div className="space-y-1">
-                    <h1 className="text-3xl font-black tracking-tight">
+                    <h1 className="text-2xl font-black tracking-tight">
                         Quản lý sự kiện
                     </h1>
                     <p className="text-muted-foreground text-base">
                         Xem xét và phê duyệt các sự kiện của các đơn vị tổ chức sự kiện.
                     </p>
                 </div>
-                <Button variant="outline" className="gap-2 shadow-sm">
-                    <Download size={16} />
-                    Xuất dữ liệu
-                </Button>
+                <div className="flex gap-2">
+                    <Button variant="outline" className="gap-2 shadow-sm">
+                        <Download size={16} />
+                        Xuất dữ liệu
+                    </Button>
+                    <RefreshButton
+                        isLoading={isLoading}
+                        onClick={fetchEvents}
+                    />
+                </div>
             </div>
 
             {/* Filters & Actions Bar */}
@@ -84,33 +151,50 @@ const EventManagement = () => {
                 <div className="relative flex-1 max-w-lg">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder="Tìm kiếm theo tên, email hoặc tổ chức..."
+                        placeholder="Tìm kiếm theo tên sự kiện, email nhà tổ chức..."
                         className="pl-9 bg-card"
+                        onKeyDown={handleSearchByName}
+                        defaultValue={query}
                     />
                 </div>
 
                 {/* Filters Select */}
                 <div className="flex gap-3">
-                    <Select defaultValue="all">
+                    <Select value={categoryIdFilter} onValueChange={(e) => handleFilterChange(e, "categoryId")}
+                        defaultValue="ALL">
+                        <SelectTrigger className="w-[180px] bg-card">
+                            <SelectValue placeholder="Chọn danh mục" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="ALL">Tất cả danh mục</SelectItem>
+                            {categories.map(item => (
+                                <SelectItem key={item.id}
+                                    value={String(item.id)}>{item.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    <Select value={statusFilter} onValueChange={(e) => handleFilterChange(e, "status")} defaultValue="ALL">
                         <SelectTrigger className="w-[180px] bg-card">
                             <SelectValue placeholder="Trạng thái" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                            <SelectItem value="pending">Chờ duyệt</SelectItem>
-                            <SelectItem value="approved">Đã phê duyệt</SelectItem>
-                            <SelectItem value="rejected">Từ chối</SelectItem>
+                            <SelectItem value="ALL">Tất cả trạng thái</SelectItem>
+                            <SelectItem value={EventStatus.PENDING}>Chờ duyệt</SelectItem>
+                            <SelectItem value={EventStatus.APPROVED}>Đã phê duyệt</SelectItem>
+                            <SelectItem value={EventStatus.REJECTED}>Từ chối</SelectItem>
+                            <SelectItem value={EventStatus.CANCELLED}>Đã hủy</SelectItem>
+
                         </SelectContent>
                     </Select>
 
-                    <Select defaultValue="newest">
+                    <Select value={sortTypeFilter} onValueChange={(e) => handleFilterChange(e, "sortType")}
+                        defaultValue={SortType.NEWEST}>
                         <SelectTrigger className="w-[160px] bg-card">
                             <SelectValue placeholder="Sắp xếp" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="newest">Mới nhất</SelectItem>
-                            <SelectItem value="oldest">Cũ nhất</SelectItem>
-                            <SelectItem value="az">A-Z</SelectItem>
+                            <SelectItem value={SortType.NEWEST}>Mới nhất</SelectItem>
+                            <SelectItem value={SortType.OLDEST}>Cũ nhất</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
@@ -161,6 +245,9 @@ const EventManagement = () => {
                                     </div>
                                 </TableCell>
                                 <TableCell>
+                                    <p className="text-sm text font-bold">
+                                        {item.address}
+                                    </p>
                                     <span className="text-sm text">
                                         {item.location}
                                     </span>

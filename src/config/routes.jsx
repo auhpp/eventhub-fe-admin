@@ -8,5 +8,14 @@ export const routes = {
     eventManagement: "/event",
     eventDetail: "/event/:id",
     category: "/category",
-    setting: "/setting"
+    setting: "/setting",
+    resalePost: "/resale-post",
+    resalePostDetail: "/resale-post/:id",
+    tag: "/tag",
+    user: "/user",
+    userDetail: "/user/:id",
+    confirmUser: "/confirm-user",
+    changePassWord: "/change-password",
+    stats: "/stats",
+    overview: "/overview"
 }

@@ -263,7 +263,7 @@ const EventDetailPage = () => {
                                                             </TableCell>
                                                             <TableCell>{ticket.quantity}</TableCell>
                                                             <TableCell>
-                                                                {formatDateTime(ticket.openAt)} - {formatDateTime(ticket.endAt)}
+                                                                {formatDateTime(ticket.openAt)}
                                                             </TableCell>
                                                             <TableCell className="text-right">
                                                                 <Badge variant="secondary" className="bg-green-100 text-green-700 hover:bg-green-100">
@@ -449,7 +449,6 @@ const EventDetailPage = () => {
                                 </div>
                             </CardContent>
                         </Card>
-
                     </div>
                 </div>
             </div>

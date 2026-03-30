@@ -1,7 +1,6 @@
 import API from "@/config/api";
-
-export const getEvents = async ({ page = 1, size = 10 }) => {
-    const response = await API.get(`/api/v1/event?page=${page}&size=${size}`, {
+export const getEvents = async ({ request, page = 1, size = 10 }) => {
+    const response = await API.post(`/api/v1/event/filter?page=${page}&size=${size}`, request, {
         requiresAuth: true
     });
     return response.data;
@@ -26,6 +25,14 @@ export const approveEvent = async ({ id, commissionRate, commissionFixedPerTicke
         commissionRate, commissionFixedPerTicket
     }, {
         requiresAuth: true
+    });
+    return response.data;
+};
+
+
+export const countEvent = async ({ statuses }) => {
+    const response = await API.post(`/api/v1/event/count`, { statuses }, {
+        requiresAuth: false
     });
     return response.data;
 };
