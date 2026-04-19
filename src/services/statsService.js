@@ -10,17 +10,22 @@ export const getKpiOverview = async ({ startDate, endDate, timeUnit }) => {
 };
 
 
-export const getRevenueCharts = async ({ startDate, endDate, timeUnit, revenueSource }) => {
-    const response = await API.get('/api/v1/admin/reports/revenue/chart', {
-        params: { startDate, endDate, timeUnit, revenueSource },
+export const getRevenueCharts = async ({ startDate, endDate, revenueSource }) => {
+    const response = await API.post('/api/v1/admin/reports/revenue/chart',
+        {
+            dateRangeFilter: { startDate, endDate }
+        }, {
+        params: { revenueSource },
         requiresAuth: true
     });
     return response.data;
 };
 
-export const getTopEventRevenue = async ({ startDate, endDate, timeUnit, limit }) => {
-    const response = await API.get('/api/v1/admin/reports/revenue/top-events', {
-        params: { startDate, endDate, timeUnit, limit },
+export const getTopEventRevenue = async ({ startDate, endDate, limit }) => {
+    const response = await API.post('/api/v1/stats/revenue/top-events',
+        {
+            dateRangeFilter: { startDate, endDate }, paginationRequest: { limit },
+        }, {
         requiresAuth: true
     });
     return response.data;
@@ -74,5 +79,18 @@ export const getUserGrowthChart = async ({ startDate, endDate, timeUnit, roleNam
         params: { startDate, endDate, timeUnit, roleName },
         requiresAuth: true
     });
+    return response.data;
+};
+
+export const getEventStats = async ({ eventSessionId,
+    startDate, endDate }) => {
+    const response = await API.post(`/api/v1/stats/overview`,
+        {
+            eventSessionId,
+            dateRangeFilter: { startDate, endDate }
+        },
+        {
+            requiresAuth: true
+        });
     return response.data;
 };

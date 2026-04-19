@@ -9,7 +9,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Info } from "lucide-react";
 
 const RejectReasonModal = ({ isOpen, onClose, onConfirm, title }) => {
     const [reason, setReason] = useState("");
@@ -65,14 +64,6 @@ const RejectReasonModal = ({ isOpen, onClose, onConfirm, title }) => {
                         />
 
                         {error && <p className="text-xs text-red-500 font-medium mt-1">{error}</p>}
-                    </div>
-
-                    {/* Info Note */}
-                    <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-                        <Info className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                        <p className="text-xs">
-                            Lý do này sẽ được gửi qua email cho người gửi yêu cầu.
-                        </p>
                     </div>
                 </div>
 

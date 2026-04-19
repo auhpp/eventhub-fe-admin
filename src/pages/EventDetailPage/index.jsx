@@ -32,6 +32,8 @@ import RejectReasonModal from "@/components/RejectReasonModal";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { getSystemConfigByKey } from "@/services/systemConfigurationService";
 import { toast } from "sonner";
+import SessionFinancialCard from "./SessionFinancialCard";
+import TicketStatusBadge from "@/components/TicketStatusBadge";
 
 const EventDetailPage = () => {
     const [event, setEvent] = useState(null);
@@ -44,6 +46,7 @@ const EventDetailPage = () => {
     const [eventCommissionRate, setEventCommissionRate] = useState(null)
     const [eventCommissionFixed, setEventCommissionFixed] = useState(null)
     const [isLoading, setIsLoading] = useState(false);
+
     useEffect(
         () => {
             const fetchEventById = async () => {
@@ -92,8 +95,6 @@ const EventDetailPage = () => {
         }, [isRefresh, eventId]
     )
 
-
-
     if (!event || !eventCommissionFixed || !eventCommissionRate) {
         return (
             <div className="flex justify-center items-center h-screen w-full">
@@ -104,7 +105,6 @@ const EventDetailPage = () => {
 
     const isOnline = event.type === EventType.ONLINE.key
 
-    // Calculate earliest start date  from sessions
     const earliestStart = event.eventSessions?.length > 0
         ? event.eventSessions.reduce((min, session) => session.startDateTime < min ? session.startDateTime : min, event.eventSessions[0].startDateTime)
         : null;
@@ -113,9 +113,7 @@ const EventDetailPage = () => {
         return acc + session.tickets.reduce((tAcc, ticket) => tAcc + ticket.quantity, 0);
     }, 0);
 
-
     const handleRejectSubmit = async (reason) => {
-        console.log("Đã từ chối với lý do:", reason);
         try {
             const response = await rejectEvent({ id: eventId, reason: reason });
             if (response.code == HttpStatusCode.Ok) {
@@ -145,11 +143,11 @@ const EventDetailPage = () => {
             setIsApproveModalOpen(false);
             setIsLoading(false)
         }
-
     };
+
     return (
         <div className="flex-1 overflow-y-auto p-2 md:p-2 dark:bg-slate-950">
-            <div className="max-w-6xl mx-auto space-y-6">
+            <div className="space-y-6">
                 {/* Header Section */}
                 <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                     <div className="space-y-1">
@@ -165,9 +163,7 @@ const EventDetailPage = () => {
                     </div>
 
                     <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm"
-                            onClick={() => navigate(-1)}
-                            className="gap-2">
+                        <Button variant="outline" size="sm" onClick={() => navigate(-1)} className="gap-2">
                             <ArrowLeft className="w-4 h-4" /> Quay lại
                         </Button>
                         <Button variant="outline" size="sm" className="gap-2">
@@ -178,28 +174,19 @@ const EventDetailPage = () => {
 
                 {/* Main */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-
                     {/* LEFT COLUMN (Content) */}
                     <div className="lg:col-span-2 space-y-6">
 
                         {/* Banner Image */}
                         <div className="rounded-xl overflow-hidden border shadow-sm relative group aspect-video">
-                            <img
-                                src={event.thumbnail}
-                                alt="Event Banner"
-                                className="w-full h-full object-cover"
-                            />
-                            {/* <div className="absolute bottom-3 right-3 bg-black/60 text-white px-3 py-1 rounded-full text-xs backdrop-blur-md">
-                                Banner sự kiện
-                            </div> */}
+                            <img src={event.thumbnail} alt="Event Banner" className="w-full h-full object-cover" />
                         </div>
 
                         {/* Description */}
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-xl">
-                                    <Building className="w-5 h-5 text-primary" />
-                                    Mô tả sự kiện
+                                    <Building className="w-5 h-5 text-primary" /> Mô tả sự kiện
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
@@ -210,19 +197,18 @@ const EventDetailPage = () => {
                             </CardContent>
                         </Card>
 
-                        {/* Tickets Information*/}
+                        {/* Tickets & Financials Information */}
                         <Card>
                             <CardHeader className="px-4">
                                 <CardTitle className="flex items-center gap-2 text-xl">
-                                    <Ticket className="w-5 h-5 text-primary" />
-                                    Thông tin vé
+                                    <Ticket className="w-5 h-5 text-primary" /> Thông tin vé & Báo cáo
                                 </CardTitle>
-                                <CardDescription>Danh sách các loại vé trong sự kiện này</CardDescription>
+                                <CardDescription>Danh sách các phiên, vé và đối soát tài chính</CardDescription>
                             </CardHeader>
                             <CardContent className="px-4">
                                 {event.eventSessions?.map((session) => (
-                                    <div key={session.id} className="mb-6 last:mb-0">
-                                        <h4 className=" text-sm mb-3 flex items-center gap-2">
+                                    <div key={session.id} className="mb-8 last:mb-0 pb-6 border-b last:border-0 border-dashed">
+                                        <h4 className="text-sm mb-3 flex items-center gap-2">
                                             <div className="flex items-center gap-3">
                                                 <CalendarClock className="w-4 h-4 text-primary" />
                                                 <div>
@@ -231,15 +217,14 @@ const EventDetailPage = () => {
                                                         {formatDate(session.startDateTime) == formatDate(session.endDateTime) ?
                                                             getDayInWeek(session.startDateTime) :
                                                             getDayInWeek(session.startDateTime) - getDayInWeek(session.endDateTime)
-                                                        } </p>
-                                                    <p className="text-primary font-semibold">
-                                                        {
-                                                            formatDate(session.startDateTime) == formatDate(session.endDateTime) ?
-                                                                formatDate(session.startDateTime) :
-                                                                formatDate(session.startDateTime) - formatDate(session.endDateTime)
                                                         }
                                                     </p>
-
+                                                    <p className="text-primary font-semibold">
+                                                        {formatDate(session.startDateTime) == formatDate(session.endDateTime) ?
+                                                            formatDate(session.startDateTime) :
+                                                            formatDate(session.startDateTime) - formatDate(session.endDateTime)
+                                                        }
+                                                    </p>
                                                 </div>
                                             </div>
                                         </h4>
@@ -262,40 +247,50 @@ const EventDetailPage = () => {
                                                                 {formatCurrency(ticket.price)}
                                                             </TableCell>
                                                             <TableCell>{ticket.quantity}</TableCell>
-                                                            <TableCell>
-                                                                {formatDateTime(ticket.openAt)}
-                                                            </TableCell>
+                                                            <TableCell>{formatDateTime(ticket.openAt)}</TableCell>
                                                             <TableCell className="text-right">
-                                                                <Badge variant="secondary" className="bg-green-100 text-green-700 hover:bg-green-100">
-                                                                    Đang mở bán
-                                                                </Badge>
+                                                                {
+                                                                    (new Date(ticket.endAt)) < (new Date()) ?
+                                                                        <Badge variant="secondary"
+                                                                            className="bg-red-100 text-red-700
+                                                                             hover:bg-red-100">
+                                                                            Đã nghĩ bán
+                                                                        </Badge> :
+                                                                        (new Date(ticket.openAt)) > (new Date()) ?
+                                                                            <Badge variant="secondary"
+                                                                                className="bg-red-100 text-red-700
+                                                                             hover:bg-red-100">
+                                                                                Chưa mở bán
+                                                                            </Badge>
+                                                                            :
+                                                                            <TicketStatusBadge status={ticket.status} />
+                                                                }
                                                             </TableCell>
                                                         </TableRow>
                                                     ))}
                                                 </TableBody>
                                             </Table>
                                         </div>
+                                        
+                                        {/* stats */}
+                                        <SessionFinancialCard session={session} eventStatus={event.status} />
+
                                     </div>
                                 ))}
                             </CardContent>
                         </Card>
 
                         {/* Location */}
-                        {
-                            !isOnline &&
-                            <Card >
+                        {!isOnline && (
+                            <Card>
                                 <CardHeader className="px-4">
                                     <CardTitle className="flex items-center gap-2 text-xl">
                                         <MapPin className="w-5 h-5 text-primary" />
-                                        {isOnline ? 'Thông tin phòng họp' : 'Địa điểm tổ chức'}
+                                        Địa điểm tổ chức
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="px-4">
-
-                                    <div
-                                        className="bg-slate-100 dark:bg-slate-800 h-64 rounded-lg flex items-center 
-                                justify-center relative overflow-hidden"
-                                    >
+                                    <div className="bg-slate-100 dark:bg-slate-800 h-64 rounded-lg flex items-center justify-center relative overflow-hidden">
                                         <Map
                                             lat={event.locationCoordinates.latitude}
                                             lng={event.locationCoordinates.longitude}
@@ -304,74 +299,61 @@ const EventDetailPage = () => {
                                     </div>
                                 </CardContent>
                             </Card>
-                        }
+                        )}
                     </div>
 
                     {/* RIGHT COLUMN (Sidebar/Sticky) */}
                     <div className="space-y-6 lg:sticky lg:top-6">
-
                         {/* Moderation Actions Card */}
                         <Card className="border-slate-200 shadow-lg ring-1 ring-slate-900/5">
                             <CardHeader className="pb-3">
                                 <CardTitle className="flex items-center gap-2 text-lg">
-                                    <Gavel className="w-5 h-5 text-orange-500" />
-                                    Kiểm duyệt sự kiện
+                                    <Gavel className="w-5 h-5 text-orange-500" /> Kiểm duyệt sự kiện
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                {event.status === EventStatus.APPROVED
-                                    && (
-                                        <Alert variant="default" className="bg-green-50 dark:bg-green-900/10 border-green-200">
-                                            <AlertTitle className="text-green-700">Sự kiện này đã được duyệt</AlertTitle>
-                                        </Alert>
-                                    )}
-                                {event.status === EventStatus.REJECTED
-                                    && event.rejectionReason && (
-                                        <Alert variant="destructive" className="bg-red-50 dark:bg-red-900/10 border-red-200">
-                                            <AlertCircle className="h-4 w-4" />
-                                            <AlertTitle>Sự kiện này đã bị từ chối</AlertTitle>
-                                            <AlertDescription>
-                                                Lý do: {event.rejectionReason}
-                                            </AlertDescription>
-                                        </Alert>
-                                    )}
-                                {
-                                    event.status == EventStatus.PENDING && (
-                                        <>
-                                            <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg text-sm text-blue-800 dark:text-blue-300 border border-blue-100 dark:border-blue-800 flex gap-2">
-                                                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                                                <p>Sự kiện này đang chờ duyệt. Vui lòng kiểm tra kỹ thông tin.</p>
-                                            </div>
-
-                                            <div className="grid grid-cols-2 gap-3 pt-2">
-                                                <Button variant="destructive"
-                                                    onClick={() => setRejectModalOpen(true)}
-                                                    className="bg-red-50 text-red-600 hover:bg-red-100 border-red-200 border shadow-none">
-                                                    <XCircle className="w-4 h-4 mr-2" /> Từ chối
-                                                </Button>
-                                                <Button
-                                                    onClick={() => setIsApproveModalOpen(true)}
-                                                    className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20 shadow-lg">
-                                                    <CheckCircle className="w-4 h-4 mr-2" /> Duyệt ngay
-                                                </Button>
-                                                <ApproveEventModal
-                                                    isOpen={isApproveModalOpen}
-                                                    onClose={() => setIsApproveModalOpen(false)}
-                                                    defaultCommission={eventCommissionRate.value}
-                                                    defaultFixedFee={eventCommissionFixed.value}
-                                                    onConfirm={handleApproveSubmit}
-                                                    isLoading={isLoading}
-                                                />
-                                                <RejectReasonModal
-                                                    isOpen={rejectModalOpen}
-                                                    onClose={() => setRejectModalOpen(false)}
-                                                    onConfirm={handleRejectSubmit}
-                                                    title={"Từ chối sự kiện"}
-                                                />
-                                            </div>
-                                        </>
-                                    )
-                                }
+                                {event.status === EventStatus.APPROVED && (
+                                    <Alert variant="default" className="bg-green-50 dark:bg-green-900/10 border-green-200">
+                                        <AlertTitle className="text-green-700">Sự kiện này đã được duyệt</AlertTitle>
+                                    </Alert>
+                                )}
+                                {event.status === EventStatus.REJECTED && event.rejectionReason && (
+                                    <Alert variant="destructive" className="bg-red-50 dark:bg-red-900/10 border-red-200">
+                                        <AlertCircle className="h-4 w-4" />
+                                        <AlertTitle>Sự kiện này đã bị từ chối</AlertTitle>
+                                        <AlertDescription>Lý do: {event.rejectionReason}</AlertDescription>
+                                    </Alert>
+                                )}
+                                {event.status == EventStatus.PENDING && (
+                                    <>
+                                        <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg text-sm text-blue-800 dark:text-blue-300 border border-blue-100 dark:border-blue-800 flex gap-2">
+                                            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                                            <p>Sự kiện này đang chờ duyệt. Vui lòng kiểm tra kỹ thông tin.</p>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-3 pt-2">
+                                            <Button variant="destructive" onClick={() => setRejectModalOpen(true)} className="bg-red-50 text-red-600 hover:bg-red-100 border-red-200 border shadow-none">
+                                                <XCircle className="w-4 h-4 mr-2" /> Từ chối
+                                            </Button>
+                                            <Button onClick={() => setIsApproveModalOpen(true)} className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20 shadow-lg">
+                                                <CheckCircle className="w-4 h-4 mr-2" /> Duyệt ngay
+                                            </Button>
+                                            <ApproveEventModal
+                                                isOpen={isApproveModalOpen}
+                                                onClose={() => setIsApproveModalOpen(false)}
+                                                defaultCommission={eventCommissionRate.value}
+                                                defaultFixedFee={eventCommissionFixed.value}
+                                                onConfirm={handleApproveSubmit}
+                                                isLoading={isLoading}
+                                            />
+                                            <RejectReasonModal
+                                                isOpen={rejectModalOpen}
+                                                onClose={() => setRejectModalOpen(false)}
+                                                onConfirm={handleRejectSubmit}
+                                                title={"Từ chối sự kiện"}
+                                            />
+                                        </div>
+                                    </>
+                                )}
                             </CardContent>
                         </Card>
 
@@ -392,8 +374,6 @@ const EventDetailPage = () => {
                                         </p>
                                     </div>
                                 </div>
-
-
                                 <div className="flex items-start gap-3">
                                     <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500">
                                         <Users className="w-5 h-5" />
@@ -403,7 +383,6 @@ const EventDetailPage = () => {
                                         <p className="text-sm font-semibold mt-0.5">{totalTickets} vé</p>
                                     </div>
                                 </div>
-
                                 <div className="flex items-start gap-3">
                                     <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500">
                                         <ChartBarStacked className="w-5 h-5" />
@@ -423,19 +402,15 @@ const EventDetailPage = () => {
                                     <h3 className="font-bold text-base">Ban tổ chức</h3>
                                     <a href="#" className="text-xs text-primary hover:underline">Xem hồ sơ</a>
                                 </div>
-
                                 <div className="flex items-center gap-3 mb-4">
                                     <Avatar className="w-12 h-12 border">
                                         <AvatarImage src={event.appUser?.avatar} />
-                                        <AvatarFallback>{event.appUser.fullName ? event.appUser?.fullName.charAt(0) :
-                                            "U"}</AvatarFallback>
+                                        <AvatarFallback>{event.appUser.fullName ? event.appUser?.fullName.charAt(0) : "U"}</AvatarFallback>
                                     </Avatar>
                                     <div>
                                         <p className="text-sm font-bold">{event.appUser?.fullName}</p>
-                                        {/* <p className="text-xs text-muted-foreground">Organizer</p> */}
                                     </div>
                                 </div>
-
                                 <div className="space-y-2 text-sm text-slate-600 dark:text-slate-300">
                                     <div className="flex items-center gap-2">
                                         <Mail className="w-4 h-4 text-slate-400" />
@@ -445,7 +420,6 @@ const EventDetailPage = () => {
                                         <Phone className="w-4 h-4 text-slate-400" />
                                         <span>{event.appUser?.phoneNumber}</span>
                                     </div>
-
                                 </div>
                             </CardContent>
                         </Card>

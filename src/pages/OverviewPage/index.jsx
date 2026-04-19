@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom'; 
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,17 +30,21 @@ export default function OverviewPage() {
         todayNewUsers: 0
     });
 
-    useEffect(() => {
-        fetchTodayOverview();
-    }, []);
-
     const fetchTodayOverview = async () => {
         setLoading(true);
         try {
-            const today = new Date().toISOString().split('T')[0];
+            const date = new Date();
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+
+            const dateString = `${year}-${month}-${day}`;
+
+            const startOfDay = `${dateString}T00:00:00`;
+            const endOfDay = `${dateString}T23:59:59`;
 
             const [kpiData, eventsData, resalesData, organizerData] = await Promise.all([
-                getKpiOverview({ startDate: today, endDate: today, timeUnit: 'DAY' }),
+                getKpiOverview({ startDate: startOfDay, endDate: endOfDay }),
                 countEvent({ statuses: ['PENDING'] }),
                 countResalePost({ status: 'PENDING' }),
                 countOrganizerRegistration({ status: "PENDING" })
@@ -63,6 +67,10 @@ export default function OverviewPage() {
     const currentDateString = new Intl.DateTimeFormat('vi-VN', {
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
     }).format(new Date());
+
+    useEffect(() => {
+        fetchTodayOverview();
+    }, []);
 
     return (
         <div className="p-2 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
@@ -160,7 +168,7 @@ export default function OverviewPage() {
                                         <Button
                                             asChild
                                             className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                                            disabled={stats.pendingResales === 0}
+                                            disabled={stats.pendingOrganizerRequest === 0}
                                         >
                                             <Link to={routes.organizerRegistration + "?status=PENDING"}>
                                                 Đi tới duyệt ngay <ArrowRight className="w-4 h-4 ml-2" />

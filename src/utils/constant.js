@@ -77,3 +77,22 @@ export const ResalePostStatus = {
     CANCELLED_BY_ADMIN: 'CANCELLED_BY_ADMIN',
     CANCELLED_BY_USER: 'CANCELLED_BY_USER',
 }
+
+export const TicketStatus = {
+    PENDING: 'PENDING',
+    ACTIVE: 'ACTIVE',
+    INACTIVE: 'INACTIVE',
+
+}
+
+export const OrganizerType = {
+    ORGANIZATION: 'ORGANIZATION', PERSONAL: 'PERSONAL'
+}
+
+export const WithdrawalStatus = {
+    PENDING: 'PENDING',
+    PROCESSING: 'PROCESSING',
+    COMPLETED: 'COMPLETED',
+    REJECTED: 'REJECTED',
+    CANCELLED: 'CANCELLED'
+}

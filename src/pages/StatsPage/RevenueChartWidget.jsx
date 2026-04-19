@@ -30,7 +30,7 @@ export const RevenueChartWidget = ({ filters, refresh }) => {
         <Card className="col-span-1 md:col-span-2">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <div className="space-y-1">
-                    <CardTitle>Biểu Đồ Doanh Thu & Hoa Hồng</CardTitle>
+                    <CardTitle>Biểu Đồ Doanh Thu & Phí dịch vụ</CardTitle>
                     <CardDescription>Theo dõi biến động dòng tiền theo chu kỳ</CardDescription>
                 </div>
                 <Select
@@ -82,7 +82,7 @@ export const RevenueChartWidget = ({ filters, refresh }) => {
                                 fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={40} />
 
                             <Line yAxisId="right" type="monotone" dataKey="commission"
-                                name="Hoa Hồng" stroke="#10b981" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                                name="Tổng phí dịch vụ" stroke="#10b981" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
                         </ComposedChart>
                     </ResponsiveContainer>
                 </div>

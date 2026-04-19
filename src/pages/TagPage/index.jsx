@@ -28,7 +28,7 @@ import RefreshButton from "@/components/RefreshButton";
 
 const TagPage = () => {
     const [tags, setTags] = useState(null);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [isLoadingData, setIsLoadingData] = useState(false);
 
     const [showModal, setShowModal] = useState(false);
@@ -48,7 +48,6 @@ const TagPage = () => {
 
     const fetchTags = async () => {
         try {
-            setIsLoading(true)
             const searchData = {};
             if (query) searchData.name = query;
             if (typeFilter !== "ALL") searchData.type = typeFilter;

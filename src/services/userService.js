@@ -70,3 +70,12 @@ export const getUserByEmail = async ({ email }) => {
     });
     return response.data;
 };
+
+
+export const exportUser = async ({ email, status, roleName }) => {
+    const response = await API.post(`/api/v1/user/reports/export`, { email, status, roleName }, {
+        responseType: "blob",
+        requiresAuth: true
+    });
+    return response.data;
+};

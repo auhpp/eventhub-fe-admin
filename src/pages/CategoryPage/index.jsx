@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
     Search, MoreVertical,
-
     Loader2,
     Plus,
     Pencil,
@@ -31,7 +30,7 @@ import RefreshButton from "@/components/RefreshButton";
 const CategoryPage = () => {
     const [categories, setCategories] = useState(null)
     const [isLoading, setIsLoading] = useState(false);
-    const [isLoadingData, setIsLoadingData] = useState(false)
+    const [isLoadingData, setIsLoadingData] = useState(true)
 
     const [showModal, setShowModal] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState(null);
@@ -49,7 +48,6 @@ const CategoryPage = () => {
 
     const fetchCategories = async () => {
         try {
-            setIsLoading(true)
             const response = await getCategorisPagination({
                 name: query,
                 sortOrder: sortOrderFilter,
@@ -80,7 +78,6 @@ const CategoryPage = () => {
         setShowModal(true);
     };
 
-    // Xử lý mở Modal Edit
     const handleEdit = (category) => {
         setSelectedCategory(category);
         setShowModal(true);

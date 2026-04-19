@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 import {
-    ArrowLeft, Check, X, Mail, Phone, MapPin,
-    Clock, User, Building2, AlertCircle, Calendar,
+    ArrowLeft, Check, X, Mail, Phone, 
+    AlertCircle, 
     Loader2
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ApproveConfirmModal } from "@/components/ApproveConfirmModal";
@@ -15,8 +15,9 @@ import RejectReasonModal from "@/components/RejectReasonModal";
 import { useLocation, useNavigate } from "react-router-dom";
 import { approveOrganizerRegistrationRequest, getOrganizerRegistrationById, rejectOrganizerRegistration } from "@/services/organizerRegistrationService";
 import { HttpStatusCode } from "axios";
-import { RegistrationStatus } from "@/utils/constant";
+import { OrganizerType, RegistrationStatus } from "@/utils/constant";
 import { StatusBadge } from "@/components/StatusBadge";
+import DefaultAvatar from "@/components/DefaultAvatar";
 
 
 const OrganizerRequestDetail = () => {
@@ -79,7 +80,7 @@ const OrganizerRequestDetail = () => {
     }
 
     return (
-        <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
+        <div className="pt-4 pb-4 space-y-6">
 
             {/* --- PAGE HEADER --- */}
             <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
@@ -98,11 +99,11 @@ const OrganizerRequestDetail = () => {
                         </div>
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
                             <span className="flex items-center gap-1.5">
-                                <Building2 size={14} /> ID: <span className="font-mono">#{organizerRegistration.id}</span>
+                                ID: <span className="font-mono">#{organizerRegistration.id}</span>
                             </span>
                             <Separator orientation="vertical" className="h-4" />
-                            <span className="flex items-center gap-1.5">
-                                <Calendar size={14} /> Gửi ngày: {new Date(organizerRegistration.createdAt).toLocaleDateString('vi-VN')}
+                            <span className="flex items-center">
+                                Gửi ngày: {new Date(organizerRegistration.createdAt).toLocaleDateString('vi-VN')}
                             </span>
                         </div>
                     </div>
@@ -144,12 +145,9 @@ const OrganizerRequestDetail = () => {
                     <Card>
                         <CardHeader className="pb-4 border-b">
                             <div className="flex items-center gap-2">
-                                <div className="p-2 bg-primary/10 rounded-lg">
-                                    <Building2 className="w-5 h-5 text-primary" />
-                                </div>
                                 <div>
-                                    <CardTitle className="text-lg">Hồ sơ Tổ chức / Doanh nghiệp</CardTitle>
-                                    <CardDescription>Thông tin chi tiết về pháp nhân đăng ký</CardDescription>
+                                    <CardTitle className="text-lg">Hồ sơ đăng ký</CardTitle>
+                                    <CardDescription>Thông tin chi tiết đăng ký</CardDescription>
                                 </div>
                             </div>
                         </CardHeader>
@@ -167,39 +165,43 @@ const OrganizerRequestDetail = () => {
                                 <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
                                     <div className="space-y-1">
                                         <label className="text-xs font-semibold text-muted-foreground uppercase">
-                                            Đại diện pháp lý</label>
-                                        <p className="text-sm font-medium flex items-center gap-2">
-                                            <User size={16} className="text-muted-foreground" />
+                                            Người đại diện</label>
+                                        <p className="text-sm font-medium ">
                                             {organizerRegistration.representativeFullName}
                                         </p>
                                     </div>
                                     <div className="space-y-1">
                                         <label className="text-xs font-semibold text-muted-foreground uppercase">
                                             Email liên hệ</label>
-                                        <p className="text-sm font-medium text-primary hover:underline 
-                                        cursor-pointer flex items-center gap-2">
-                                            <Mail size={16} className="text-muted-foreground" />
+                                        <p className="text-sm font-medium ">
+
                                             {organizerRegistration.email}
+                                        </p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-semibold text-muted-foreground uppercase">Loại hình</label>
+                                        <p className="text-sm font-medium">
+                                            {organizerRegistration.type == OrganizerType.PERSONAL ? "Cá nhân" : "Tổ chức"}
+                                        </p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-semibold text-muted-foreground uppercase">Mã số thuế</label>
+                                        <p className="text-sm font-medium">
+                                            {organizerRegistration.taxCode}
                                         </p>
                                     </div>
                                     <div className="space-y-1">
                                         <label className="text-xs font-semibold text-muted-foreground uppercase">
                                             Số điện thoại</label>
-                                        <p className="text-sm font-medium flex items-center gap-2">
-                                            <Phone size={16} className="text-muted-foreground" />
+                                        <p className="text-sm font-medium ">
                                             {organizerRegistration.phoneNumber}
                                         </p>
                                     </div>
                                     <div className="space-y-1">
                                         <label className="text-xs font-semibold text-muted-foreground uppercase">
                                             Địa chỉ trụ sở</label>
-                                        <div className="text-sm font-medium flex items-center gap-2">
-                                            <div>
-                                                <MapPin size={16} className="text-muted-foreground" />
-                                            </div>
-                                            <span>
-                                                {organizerRegistration.contactAddress}
-                                            </span>
+                                        <div className="text-sm font-medium">
+                                            {organizerRegistration.contactAddress}
                                         </div>
                                     </div>
                                 </div>
@@ -231,61 +233,32 @@ const OrganizerRequestDetail = () => {
                             <div className="flex items-center gap-4 mb-6">
                                 <div className="relative">
                                     <Avatar className="h-16 w-16 border-2 border-background shadow-sm">
-                                        <AvatarImage src={organizerRegistration.appUser?.avatar}
-                                            alt={organizerRegistration.appUser?.fullName} />
-                                        <AvatarFallback className="text-lg">
-                                            {organizerRegistration.appUser?.fullName?.charAt(0)}</AvatarFallback>
+                                        <DefaultAvatar user={organizerRegistration.appUser} />
                                     </Avatar>
-                                    {organizerRegistration.appUser.isOnline && (
-                                        <span className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 
-                                        border-background rounded-full ring-1 ring-white/10"></span>
-                                    )}
+
                                 </div>
                                 <div>
-                                    <h4 className="font-bold text-lg leading-tight">
-                                        {organizerRegistration.appUser.fullName}</h4>
-                                    <p className="text-xs text-muted-foreground mt-1">
-                                        Tham gia: {new Date(organizerRegistration.appUser.createdAt).toLocaleDateString('vi-VN')}
-                                    </p>
+                                    <h4 className="font-bold text-lg leading-tight">{organizerRegistration.appUser.fullName}</h4>
+                                    <p className="text-sm text-muted-foreground mt-1">Tham gia: {new Date(organizerRegistration.appUser.createdAt).toLocaleDateString('vi-VN')}</p>
                                 </div>
                             </div>
 
                             <div className="space-y-3">
                                 <div className="flex items-center gap-3 p-2 rounded-md hover:bg-muted/50 transition-colors">
-                                    <div className="h-8 w-8 rounded-full bg-background border flex items-center justify-center
-                                     shrink-0 text-muted-foreground">
+                                    <div className="h-8 w-8 rounded-full bg-background border flex items-center justify-center shrink-0 text-muted-foreground">
                                         <Mail size={14} />
                                     </div>
                                     <div className="overflow-hidden">
-                                        <p className="text-xs text-muted-foreground">Email tài khoản</p>
-                                        <p className="text-sm font-medium truncate"
-                                            title={organizerRegistration.appUser.email}>{organizerRegistration.appUser.email}</p>
+                                        <p className="text-sm font-medium truncate" title={organizerRegistration.appUser.email}>{organizerRegistration.appUser.email}</p>
                                     </div>
                                 </div>
 
                                 <div className="flex items-center gap-3 p-2 rounded-md hover:bg-muted/50 transition-colors">
-                                    <div className="h-8 w-8 rounded-full bg-background border flex items-center
-                                     justify-center shrink-0 text-muted-foreground">
+                                    <div className="h-8 w-8 rounded-full bg-background border flex items-center justify-center shrink-0 text-muted-foreground">
                                         <Phone size={14} />
                                     </div>
                                     <div>
-                                        <p className="text-xs text-muted-foreground">SĐT tài khoản</p>
-                                        <p className="text-sm font-medium">
-                                            {organizerRegistration.appUser.phoneNumber || "Chưa cập nhật"}</p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center gap-3 p-2 rounded-md hover:bg-muted/50 transition-colors">
-                                    <div className="h-8 w-8 rounded-full bg-background border flex items-center
-                                     justify-center shrink-0 text-muted-foreground">
-                                        <Clock size={14} />
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-muted-foreground">Hoạt động gần nhất</p>
-                                        <p className="text-sm font-medium">
-                                            {organizerRegistration.appUser.lastSeen ?
-                                                new Date(organizerRegistration.appUser.lastSeen).toLocaleString('vi-VN') : 'N/A'}
-                                        </p>
+                                        <p className="text-sm font-medium">{organizerRegistration.appUser.phoneNumber || "Chưa cập nhật"}</p>
                                     </div>
                                 </div>
                             </div>
@@ -294,7 +267,7 @@ const OrganizerRequestDetail = () => {
                                 <Alert variant="default" className="bg-blue-50 text-blue-900 border-blue-100 
                                 dark:bg-blue-900/20 dark:text-blue-200 dark:border-blue-800 py-3">
                                     <AlertCircle className="h-4 w-4 stroke-blue-600 dark:stroke-blue-400" />
-                                    <AlertDescription className="text-xs ml-2">
+                                    <AlertDescription className="text-sm ml-2">
                                         Hãy đối chiếu thông tin doanh nghiệp và tài khoản cá nhân trước khi duyệt.
                                     </AlertDescription>
                                 </Alert>

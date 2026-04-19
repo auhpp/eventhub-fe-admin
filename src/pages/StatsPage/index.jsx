@@ -31,7 +31,7 @@ export default function StatsPage() {
         timeUnit: 'MONTH'
     });
     const [kpiData, setKpiData] = useState(null);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [refresh, setRefresh] = useState(false);
 
     useEffect(() => {
@@ -39,7 +39,6 @@ export default function StatsPage() {
     }, [filters, refresh]);
 
     const fetchKpiData = async () => {
-        setLoading(true);
         try {
             const data = await getKpiOverview(filters);
             setKpiData(data.result);
@@ -78,20 +77,20 @@ export default function StatsPage() {
                         <h2 className="text-lg font-semibold mb-3">Tài chính & Doanh thu</h2>
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                             <KpiCard
-                                title="Tổng Doanh Thu"
+                                title="Tổng doanh thu"
                                 value={formatCurrency(kpiData.totalFmv)}
                                 icon={DollarSign}
                                 iconColor="bg-green-100 text-green-600"
                                 description="Tổng dòng tiền giao dịch"
                             />
                             <KpiCard
-                                title="Hoa hồng từ Sự Kiện"
+                                title="Phí dịch vụ từ sự kiện"
                                 value={formatCurrency(kpiData.commissionFromEvents)}
                                 icon={Wallet}
                                 iconColor="bg-blue-100 text-blue-600"
                             />
                             <KpiCard
-                                title="Hoa hồng từ Bán Lại Vé"
+                                title="Phí dịch vụ từ bán Lại Vé"
                                 value={formatCurrency(kpiData.commissionFomResales)}
                                 icon={Ticket}
                                 iconColor="bg-purple-100 text-purple-600"

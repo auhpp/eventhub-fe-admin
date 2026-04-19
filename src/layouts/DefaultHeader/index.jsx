@@ -17,12 +17,6 @@ const DefaultHeader = () => {
     return (
         <header className="h-16 bg-card border-b border-border flex items-center justify-end px-6 shrink-0 transition-colors sticky top-0 z-20">
             <div className="flex items-center gap-2">
-                {/* Notifications */}
-                <button className="relative p-2 text-muted-foreground hover:bg-accent rounded-full transition-colors">
-                    <Bell size={24} />
-                    <span className="absolute top-2 right-2 size-2 bg-destructive rounded-full border-2 border-card"></span>
-                </button>
-
                 {/* Divider */}
                 <div className="h-8 w-[1px] bg-border mx-1"></div>
 

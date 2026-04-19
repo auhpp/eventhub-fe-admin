@@ -8,7 +8,8 @@ import {
     Tag,
     User,
     ChartBar,
-    Table
+    Table,
+    Wallet
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -20,11 +21,12 @@ const DefaultSidebar = () => {
     const navItems = [
         { label: "Tổng quan", icon: Table, href: routes.overview },
         { label: "Quản lý sự kiện", icon: Book, href: routes.eventManagement },
-        { label: "Yêu cầu BTC", icon: UserCheck, href: routes.organizerRegistration },
+        { label: "Hồ sơ nhà tổ chức", icon: UserCheck, href: routes.organizerRegistration },
         { label: "Danh mục", icon: PlayCircle, href: routes.category },
         { label: "Bán lại vé", icon: Ticket, href: routes.resalePost },
         { label: "Tag", icon: Tag, href: routes.tag },
         { label: "Tài khoản", icon: User, href: routes.user },
+        { label: "Yêu cầu rút tiền", icon: Wallet, href: routes.withdrawalRequest },
         { label: "Thống kê", icon: ChartBar, href: routes.stats },
     ];
 

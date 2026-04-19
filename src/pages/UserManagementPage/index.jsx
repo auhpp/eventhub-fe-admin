@@ -21,13 +21,14 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import DefaultPagination from "@/components/DefaultPagination";
 import { formatDateTime } from "@/utils/format";
 import DefaultAvatar from "@/components/DefaultAvatar";
-import { getUsers } from "@/services/userService";
+import { exportUser, getUsers } from "@/services/userService";
 import { RoleName } from "@/utils/constant";
 import RoleNameBadge from "@/components/RoleNameBadge";
 import UserStatusBadge from "@/components/UserStatusBadge";
 import { HttpStatusCode } from "axios";
 import CreateAdminDialog from "./CreateAdminDialog";
 import RefreshButton from "@/components/RefreshButton";
+import { toast } from "sonner";
 
 
 const UserManagementPage = () => {
@@ -36,6 +37,7 @@ const UserManagementPage = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [totalElements, setTotalElements] = useState(0);
     const [searchParams, setSearchParams] = useSearchParams();
+    const [isExporting, setIsExporting] = useState(false);
 
     // Pagination & Filters State
     const currentPage = parseInt(searchParams.get("page") || "1");
@@ -50,7 +52,6 @@ const UserManagementPage = () => {
 
     const fetchUsers = async () => {
         try {
-            setIsLoading(true);
 
             const response = await getUsers({
                 roleName: roleFilter === "ALL" ? null : roleFilter,
@@ -104,6 +105,42 @@ const UserManagementPage = () => {
         );
     }
 
+    const handleExport = async () => {
+        try {
+            setIsExporting(true);
+            toast.info("Hệ thống đang chuẩn bị báo cáo, vui lòng đợi...");
+
+            const blobData = await exportUser({
+                roleName: roleFilter === "ALL" ? null : roleFilter,
+                status: statusFilter === "ALL" ? null : statusFilter,
+                email: emailFilter
+            });
+
+            const blob = new Blob([blobData], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const downloadUrl = window.URL.createObjectURL(blob);
+
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            link.setAttribute('download', `Danh_sach_tai_khoan_${timestamp}.xlsx`);
+
+            document.body.appendChild(link);
+            link.click();
+
+            link.remove();
+            window.URL.revokeObjectURL(downloadUrl);
+
+            toast.success("Xuất báo cáo Excel thành công!");
+
+        } catch (error) {
+            console.error("Lỗi xuất báo cáo:", error);
+            toast.error("Không thể xuất file lúc này, vui lòng thử lại sau!");
+        } finally {
+            setIsExporting(false);
+        }
+    };
+
     return (
         <div className="p-2 space-y-6">
             {/* Header Section */}
@@ -117,9 +154,18 @@ const UserManagementPage = () => {
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <Button variant="outline" className="gap-2 shadow-sm">
-                        <Download size={16} />
-                        Xuất dữ liệu
+                    <Button
+                        variant="outline"
+                        className="gap-2 shadow-sm"
+                        onClick={handleExport}
+                        disabled={isExporting}
+                    >
+                        {isExporting ? (
+                            <Loader2 size={16} className="animate-spin" />
+                        ) : (
+                            <Download size={16} />
+                        )}
+                        {isExporting ? "Đang xuất..." : "Xuất báo cáo"}
                     </Button>
 
                     <Button onClick={() => setIsCreateAdminOpen(true)} className="gap-2 shadow-sm">

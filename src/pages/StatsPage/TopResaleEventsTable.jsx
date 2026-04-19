@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { getTopResaleEvent } from '@/services/statsService';
+import { formatCurrency } from '@/utils/format';
 
 const TopResaleEventsTable = ({ filters, refresh }) => {
     const [events, setEvents] = useState([]);
@@ -29,6 +30,7 @@ const TopResaleEventsTable = ({ filters, refresh }) => {
                                 <th className="px-4 py-3">Sự Kiện</th>
                                 <th className="px-4 py-3 text-right">Bài Đăng</th>
                                 <th className="px-4 py-3 text-right">Thành Công</th>
+                                <th className="px-4 py-3 text-right">Tổng phí dịch vụ</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y">
@@ -44,6 +46,9 @@ const TopResaleEventsTable = ({ filters, refresh }) => {
                                     </td>
                                     <td className="px-4 py-3 text-right text-green-600 font-medium">
                                         {evt.completedTransactionCount}
+                                    </td>
+                                    <td className="px-4 py-3 text-right text-red-600 font-medium">
+                                        {formatCurrency(evt.totalFee)}
                                     </td>
                                 </tr>
                             ))}

@@ -17,5 +17,7 @@ export const routes = {
     confirmUser: "/confirm-user",
     changePassWord: "/change-password",
     stats: "/stats",
-    overview: "/overview"
+    overview: "/overview",
+    withdrawalRequest: "/withdrawal-request",
+    withdrawalRequestDetail: "/withdrawal-request/:id",
 }

@@ -6,3 +6,12 @@ export const getEventSessionById = async ({ id }) => {
     });
     return response.data;
 };
+
+export const releaseFundManually = async ({ id }) => {
+    const response = await API.post(`/api/v1/event-session/${id}/release-fund`, {
+        requiresAuth: true
+    });
+    return response.data;
+};
+
+

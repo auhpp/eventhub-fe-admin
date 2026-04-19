@@ -32,7 +32,15 @@ export const approveEvent = async ({ id, commissionRate, commissionFixedPerTicke
 
 export const countEvent = async ({ statuses }) => {
     const response = await API.post(`/api/v1/event/count`, { statuses }, {
-        requiresAuth: false
+        requiresAuth: true
+    });
+    return response.data;
+};
+
+export const exportEvent = async ({ request }) => {
+    const response = await API.post(`/api/v1/event/reports/export`, request, {
+        responseType: "blob",
+        requiresAuth: true
     });
     return response.data;
 };

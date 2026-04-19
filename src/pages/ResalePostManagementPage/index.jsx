@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
-    Search, Download, MoreVertical, Loader2
+    Search, MoreVertical, Loader2, X 
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { routes } from "@/config/routes.jsx";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { StatusBadge } from "@/components/StatusBadge";
 import { filterResalePosts } from "@/services/resalePostService";
 import DefaultPagination from "@/components/DefaultPagination";
 import { formatCurrency, formatDateTime } from "@/utils/format";
@@ -26,7 +25,7 @@ import { isValidEmail } from "@/utils/validate";
 import { ResalePostStatus } from "@/utils/constant";
 import RefreshButton from "@/components/RefreshButton";
 import ResalePostStatusBadge from "@/components/ResalePostStatusBadge";
-
+import DatePicker from "@/components/DatePicker"; 
 
 const ResalePostManagementPage = () => {
     const [posts, setPosts] = useState(null);
@@ -34,25 +33,47 @@ const ResalePostManagementPage = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [totalElements, setTotalElements] = useState(0);
     const [searchParams, setSearchParams] = useSearchParams();
+
+    // Pagination & Filters State 
+    const currentPage = parseInt(searchParams.get("page") || "1");
     const statusFilter = searchParams.get("status") || 'ALL';
     const query = searchParams.get("query") || "";
+    const fromDateFilter = searchParams.get("fromDate") || null;
+    const toDateFilter = searchParams.get("toDate") || null;
+
+    const pageSize = 10;
     const [isLoading, setIsLoading] = useState(true);
 
-    // Pagination & Filters State
-    const currentPage = parseInt(searchParams.get("page") || "1");
-    const pageSize = 10;
+    const [searchValue, setSearchValue] = useState(query);
+
+    useEffect(() => {
+        setSearchValue(query || "");
+    }, [query]);
+
+    const hasActiveFilters =
+        statusFilter !== 'ALL' ||
+        query !== "" ||
+        fromDateFilter !== null ||
+        toDateFilter !== null;
 
     const fetchPosts = async () => {
         try {
-            setIsLoading(true)
-
-            const response = await filterResalePosts({
+            const requestPayload = {
                 email: isValidEmail(query) ? query : null,
                 name: !isValidEmail(query) ? query : null,
                 statuses: statusFilter === "ALL" ? ["ALL"] : [statusFilter],
                 page: currentPage,
                 size: pageSize
-            });
+            };
+
+            if (fromDateFilter) {
+                requestPayload.fromDate = `${fromDateFilter}T00:00:00`;
+            }
+            if (toDateFilter) {
+                requestPayload.toDate = `${toDateFilter}T23:59:59`;
+            }
+
+            const response = await filterResalePosts(requestPayload);
             const resData = response.result;
 
             if (resData) {
@@ -70,11 +91,15 @@ const ResalePostManagementPage = () => {
 
     useEffect(() => {
         fetchPosts();
-    }, [currentPage, statusFilter, query]);
+    }, [currentPage, statusFilter, query, fromDateFilter, toDateFilter]);
 
-    const handleFilterChange = (e, param) => {
+    const handleFilterChange = (value, param) => {
         setSearchParams(params => {
-            params.set(param, e);
+            if (value) {
+                params.set(param, value);
+            } else {
+                params.delete(param);
+            }
             params.set("page", "1");
             return params;
         });
@@ -83,11 +108,19 @@ const ResalePostManagementPage = () => {
     const handleSearchByName = (e) => {
         if (e.key === 'Enter') {
             setSearchParams(params => {
-                params.set('query', e.target.value);
+                if (searchValue.trim()) {
+                    params.set('query', searchValue.trim());
+                } else {
+                    params.delete('query');
+                }
                 params.set("page", "1");
                 return params;
             });
         }
+    };
+
+    const handleClearFilters = () => {
+        setSearchParams({ page: "1" });
     };
 
 
@@ -112,10 +145,6 @@ const ResalePostManagementPage = () => {
                     </p>
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="outline" className="gap-2 shadow-sm">
-                        <Download size={16} />
-                        Xuất dữ liệu
-                    </Button>
                     <RefreshButton
                         isLoading={isLoading}
                         onClick={fetchPosts}
@@ -124,33 +153,65 @@ const ResalePostManagementPage = () => {
             </div>
 
             {/* Filters & Actions Bar */}
-            <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center justify-between">
-                {/* Search Input*/}
-                <div className="relative flex-1 max-w-lg">
+            <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-end justify-between">
+                {/* Search Input */}
+                <div className="relative flex-1 max-w-lg mb-0 lg:mb-1">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                         placeholder="Tìm kiếm theo tên, email người bán..."
                         className="pl-9 bg-card"
+                        value={searchValue}
+                        onChange={(e) => setSearchValue(e.target.value)}
                         onKeyDown={handleSearchByName}
-                        defaultValue={query}
                     />
                 </div>
 
-                {/* Filters Select */}
-                <div className="flex gap-3">
-                    <Select value={statusFilter} onValueChange={(e) => handleFilterChange(e, "status")}>
-                        <SelectTrigger className="w-[180px] bg-card">
-                            <SelectValue placeholder="Trạng thái" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="ALL">Tất cả trạng thái</SelectItem>
-                            <SelectItem value={ResalePostStatus.PENDING}>Chờ duyệt</SelectItem>
-                            <SelectItem value={ResalePostStatus.APPROVED}>Đã duyệt</SelectItem>
-                            <SelectItem value={ResalePostStatus.REJECTED}>Từ chối</SelectItem>
-                            <SelectItem value={ResalePostStatus.CANCELLED_BY_ADMIN}>Admin hủy</SelectItem>
-                            <SelectItem value={ResalePostStatus.CANCELLED_BY_USER}>Người dùng hủy</SelectItem>
-                        </SelectContent>
-                    </Select>
+                {/* Filters Select & DatePicker */}
+                <div className="flex flex-wrap items-end gap-3">
+
+                    <div className="w-[140px]">
+                        <DatePicker
+                            label="Từ ngày"
+                            value={fromDateFilter}
+                            onChange={(date) => handleFilterChange(date, "fromDate")}
+                        />
+                    </div>
+
+                    <div className="w-[140px]">
+                        <DatePicker
+                            label="Đến ngày"
+                            value={toDateFilter}
+                            onChange={(date) => handleFilterChange(date, "toDate")}
+                        />
+                    </div>
+
+                    <div className="mb-0 lg:mb-1">
+                        <Select value={statusFilter} onValueChange={(e) => handleFilterChange(e, "status")}>
+                            <SelectTrigger className="w-[180px] bg-card">
+                                <SelectValue placeholder="Trạng thái" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="ALL">Tất cả trạng thái</SelectItem>
+                                <SelectItem value={ResalePostStatus.PENDING}>Chờ duyệt</SelectItem>
+                                <SelectItem value={ResalePostStatus.APPROVED}>Đã duyệt</SelectItem>
+                                <SelectItem value={ResalePostStatus.REJECTED}>Từ chối</SelectItem>
+                                <SelectItem value={ResalePostStatus.CANCELLED_BY_ADMIN}>Admin hủy</SelectItem>
+                                <SelectItem value={ResalePostStatus.CANCELLED_BY_USER}>Người dùng hủy</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    {/* clear filters */}
+                    {hasActiveFilters && (
+                        <Button
+                            variant="ghost"
+                            onClick={handleClearFilters}
+                            className="h-10 px-3 text-muted-foreground hover:text-foreground mb-0 lg:mb-1"
+                        >
+                            <X className="h-4 w-4 mr-2" />
+                            Xóa bộ lọc
+                        </Button>
+                    )}
                 </div>
             </div>
 
@@ -177,7 +238,7 @@ const ResalePostManagementPage = () => {
                         ) : (
                             posts.map((item) => (
                                 <TableRow key={item.id} className="group hover:bg-muted/50">
-                                    {/* seller) */}
+                                    {/* seller */}
                                     <TableCell>
                                         <div className="flex items-center gap-3">
                                             <Avatar>
@@ -206,8 +267,8 @@ const ResalePostManagementPage = () => {
                                                     </span>
                                                     <span className={`text-sm px-2 py-0.5 rounded-sm 
                                                         ${item.hasRetail ?
-                                                         "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" :
-                                                          "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"}`}>
+                                                            "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" :
+                                                            "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"}`}>
                                                         {item.hasRetail ? "Bán lẻ" : "Không bán lẻ"}
                                                     </span>
                                                 </div>

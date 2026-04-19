@@ -27,7 +27,7 @@ export const rejectResalePost = async ({ id, reason }) => {
 }
 
 export const filterResalePosts = async ({ sortType, quantity, eventSessionId, ticketId, hasRetail,
-    userId, email, name, statuses, page = 1, size = 10 }) => {
+    userId, email, name, statuses, fromDate, toDate, page = 1, size = 10 }) => {
     const reqStatuses = statuses?.includes("ALL") ? null : statuses;
 
     const response = await API.post(`/api/v1/resale-post/filter?page=${page}&size=${size}`, {
@@ -38,7 +38,7 @@ export const filterResalePosts = async ({ sortType, quantity, eventSessionId, ti
         hasRetail,
         userId,
         email,
-        name,
+        name, fromDate, toDate,
         statuses: reqStatuses
     }, {
         requiresAuth: true 
@@ -55,7 +55,7 @@ export const getResalePostById = async ({ id }) => {
 
 export const countResalePost = async ({ status }) => {
     const response = await API.get(`/api/v1/resale-post/count?status=${status}`, {
-        requiresAuth: false
+        requiresAuth: true
     });
     return response.data;
 };

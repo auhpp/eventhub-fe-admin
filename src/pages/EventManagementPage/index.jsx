@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
     Search, Download, MoreVertical,
-    Loader2
+    Loader2, X 
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,9 @@ import { EventStatus, SortType } from "@/utils/constant";
 import { getCategoris } from "@/services/categoryService";
 import { isValidEmail } from "@/utils/validate";
 import RefreshButton from "@/components/RefreshButton";
+import DatePicker from "@/components/DatePicker";
+import { toast } from "sonner"; 
+import { exportEvent } from "@/services/eventService";
 
 const EventManagement = () => {
     const [events, setEvents] = useState(null)
@@ -33,15 +36,34 @@ const EventManagement = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [totalElements, setTotalElements] = useState(0);
     const [searchParams, setSearchParams] = useSearchParams();
+
+    // get filter params from URL
     const currentPage = parseInt(searchParams.get("page") || "1");
     const categoryIdFilter = searchParams.get("categoryId") || 'ALL';
     const statusFilter = searchParams.get("status") || 'ALL';
     const sortTypeFilter = searchParams.get("sortType") || SortType.NEWEST;
     const query = searchParams.get("query") || "";
-    const [isLoading, setIsLoding] = useState(false);
+    const fromDateFilter = searchParams.get("fromDate") || null;
+    const toDateFilter = searchParams.get("toDate") || null;
 
+    const [isLoading, setIsLoding] = useState(true);
     const pageSize = 4;
     const [categories, setCategories] = useState(null);
+    const [searchValue, setSearchValue] = useState(query);
+    const [isExporting, setIsExporting] = useState(false);
+
+    useEffect(() => {
+        setSearchValue(query || "");
+    }, [query]
+    )
+
+    const hasActiveFilters =
+        categoryIdFilter !== 'ALL' ||
+        statusFilter !== 'ALL' ||
+        sortTypeFilter !== SortType.NEWEST ||
+        query !== "" ||
+        fromDateFilter !== null ||
+        toDateFilter !== null;
 
     useEffect(() => {
         const fetchData = async () => {
@@ -60,11 +82,19 @@ const EventManagement = () => {
 
     const fetchEvents = async () => {
         try {
-            setIsLoding(true)
             var request = {
                 status: statusFilter == "ALL" ? null : statusFilter,
                 categoryIds: categoryIdFilter == "ALL" ? null : [categoryIdFilter],
                 sortType: sortTypeFilter,
+                fromDate: fromDateFilter,
+                toDate: toDateFilter
+            }
+            if (fromDateFilter) {
+                request.fromDate = `${fromDateFilter}T00:00:00`;
+            }
+
+            if (toDateFilter) {
+                request.toDate = `${toDateFilter}T23:59:59`;
             }
             if (isValidEmail(query)) {
                 request.email = query
@@ -88,15 +118,20 @@ const EventManagement = () => {
             setIsLoding(false)
         }
     }
+
     useEffect(
         () => {
             fetchEvents()
-        }, [currentPage, statusFilter, categoryIdFilter, sortTypeFilter, query]
+        }, [currentPage, statusFilter, categoryIdFilter, sortTypeFilter, query, fromDateFilter, toDateFilter]
     )
 
-    const handleFilterChange = (e, param) => {
+    const handleFilterChange = (value, param) => {
         setSearchParams(params => {
-            params.set(param, e);
+            if (value) {
+                params.set(param, value);
+            } else {
+                params.delete(param);
+            }
             params.set("page", "1");
             return params;
         });
@@ -105,11 +140,19 @@ const EventManagement = () => {
     const handleSearchByName = (e) => {
         if (e.key === 'Enter') {
             setSearchParams(params => {
-                params.set('query', e.target.value);
+                if (searchValue.trim()) {
+                    params.set('query', searchValue.trim());
+                } else {
+                    params.delete('query');
+                }
                 params.set("page", "1");
                 return params;
             });
         }
+    };
+
+    const handleClearFilters = () => {
+        setSearchParams({ page: "1" });
     };
 
     if (!events || !categories || isLoading) {
@@ -119,9 +162,55 @@ const EventManagement = () => {
             </div>
         )
     }
+
+    const handleExport = async () => {
+        try {
+            setIsExporting(true);
+            toast.info("Hệ thống đang chuẩn bị báo cáo, vui lòng đợi...");
+
+            const request = {
+                status: statusFilter === "ALL" ? null : statusFilter,
+                categoryIds: categoryIdFilter === "ALL" ? null : [categoryIdFilter],
+                sortType: sortTypeFilter,
+                fromDate: fromDateFilter ? `${fromDateFilter}T00:00:00` : null,
+                toDate: toDateFilter ? `${toDateFilter}T23:59:59` : null,
+            };
+
+            if (isValidEmail(query)) {
+                request.email = query;
+            } else {
+                request.name = query;
+            }
+
+            const blobData = await exportEvent({ request });
+
+            const blob = new Blob([blobData], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const downloadUrl = window.URL.createObjectURL(blob);
+
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            link.setAttribute('download', `Danh_Sach_Su_Kien_${timestamp}.xlsx`);
+
+            document.body.appendChild(link);
+            link.click();
+
+            link.remove();
+            window.URL.revokeObjectURL(downloadUrl);
+
+            toast.success("Xuất báo cáo Excel thành công!");
+
+        } catch (error) {
+            console.error("Lỗi xuất báo cáo:", error);
+            toast.error("Không thể xuất file lúc này, vui lòng thử lại sau!");
+        } finally {
+            setIsExporting(false);
+        }
+    };
     return (
 
-        <div className="p-2  space-y-6">
+        <div className="p-2 space-y-6">
 
             {/* Header Section */}
             <div className="flex flex-col md:flex-row justify-between gap-4 items-start md:items-end">
@@ -134,9 +223,18 @@ const EventManagement = () => {
                     </p>
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="outline" className="gap-2 shadow-sm">
-                        <Download size={16} />
-                        Xuất dữ liệu
+                    <Button
+                        variant="outline"
+                        className="gap-2 shadow-sm"
+                        onClick={handleExport}
+                        disabled={isExporting}
+                    >
+                        {isExporting ? (
+                            <Loader2 size={16} className="animate-spin" />
+                        ) : (
+                            <Download size={16} />
+                        )}
+                        {isExporting ? "Đang xuất..." : "Xuất dữ liệu"}
                     </Button>
                     <RefreshButton
                         isLoading={isLoading}
@@ -145,24 +243,41 @@ const EventManagement = () => {
                 </div>
             </div>
 
-            {/* Filters & Actions Bar */}
-            <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center justify-between">
-                {/* Search Input */}
-                <div className="relative flex-1 max-w-lg">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        placeholder="Tìm kiếm theo tên sự kiện, email nhà tổ chức..."
-                        className="pl-9 bg-card"
-                        onKeyDown={handleSearchByName}
-                        defaultValue={query}
+            {/* Search Input */}
+            <div className="relative flex-1 max-w-sm mb-0 lg:mb-1">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                    placeholder="Tìm kiếm theo tên sự kiện, email nhà tổ chức..."
+                    className="pl-9 bg-card"
+                    onKeyDown={handleSearchByName}
+                    value={searchValue}
+                    onChange={(e) => setSearchValue(e.target.value)}
+                />
+            </div>
+
+            {/* Filters Select & DatePicker */}
+            <div className="flex flex-wrap items-end gap-3">
+
+                <div className="w-[140px]">
+                    <DatePicker
+                        label="Từ ngày"
+                        value={fromDateFilter}
+                        onChange={(date) => handleFilterChange(date, "fromDate")}
                     />
                 </div>
 
-                {/* Filters Select */}
-                <div className="flex gap-3">
+                <div className="w-[140px]">
+                    <DatePicker
+                        label="Đến ngày"
+                        value={toDateFilter}
+                        onChange={(date) => handleFilterChange(date, "toDate")}
+                    />
+                </div>
+
+                <div className="mb-0 lg:mb-1">
                     <Select value={categoryIdFilter} onValueChange={(e) => handleFilterChange(e, "categoryId")}
                         defaultValue="ALL">
-                        <SelectTrigger className="w-[180px] bg-card">
+                        <SelectTrigger className="w-[160px] bg-card">
                             <SelectValue placeholder="Chọn danh mục" />
                         </SelectTrigger>
                         <SelectContent>
@@ -173,8 +288,11 @@ const EventManagement = () => {
                             ))}
                         </SelectContent>
                     </Select>
+                </div>
+
+                <div className="mb-0 lg:mb-1">
                     <Select value={statusFilter} onValueChange={(e) => handleFilterChange(e, "status")} defaultValue="ALL">
-                        <SelectTrigger className="w-[180px] bg-card">
+                        <SelectTrigger className="w-[150px] bg-card">
                             <SelectValue placeholder="Trạng thái" />
                         </SelectTrigger>
                         <SelectContent>
@@ -183,13 +301,14 @@ const EventManagement = () => {
                             <SelectItem value={EventStatus.APPROVED}>Đã phê duyệt</SelectItem>
                             <SelectItem value={EventStatus.REJECTED}>Từ chối</SelectItem>
                             <SelectItem value={EventStatus.CANCELLED}>Đã hủy</SelectItem>
-
                         </SelectContent>
                     </Select>
+                </div>
 
+                <div className="mb-0 lg:mb-1">
                     <Select value={sortTypeFilter} onValueChange={(e) => handleFilterChange(e, "sortType")}
                         defaultValue={SortType.NEWEST}>
-                        <SelectTrigger className="w-[160px] bg-card">
+                        <SelectTrigger className="w-[130px] bg-card">
                             <SelectValue placeholder="Sắp xếp" />
                         </SelectTrigger>
                         <SelectContent>
@@ -198,6 +317,18 @@ const EventManagement = () => {
                         </SelectContent>
                     </Select>
                 </div>
+
+                {/* clear filters */}
+                {hasActiveFilters && (
+                    <Button
+                        variant="ghost"
+                        onClick={handleClearFilters}
+                        className="h-10 px-3 text-muted-foreground hover:text-foreground mb-0 lg:mb-1"
+                    >
+                        <X className="h-4 w-4 mr-2" />
+                        Xóa bộ lọc
+                    </Button>
+                )}
             </div>
 
             {/* Data Table */}
