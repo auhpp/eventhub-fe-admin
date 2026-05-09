@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
     Search, Download, MoreVertical, Loader2,
-    DollarSign, X
+    X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -268,7 +268,8 @@ const WithdrawalManagementPage = () => {
                 <Table className="min-w-max">
                     <TableHeader>
                         <TableRow className="bg-muted/50">
-                            <TableHead className="uppercase text-xs font-semibold">Mã GD & Ngày</TableHead>
+                            <TableHead className="uppercase text-xs font-semibold">Mã yêu cầu</TableHead>
+                            <TableHead className="uppercase text-xs font-semibold">Ngày tạo</TableHead>
                             <TableHead className="uppercase text-xs font-semibold">Người yêu cầu</TableHead>
                             <TableHead className="uppercase text-xs font-semibold">Số tiền</TableHead>
                             <TableHead className="uppercase text-xs font-semibold">Thông tin nhận</TableHead>
@@ -289,9 +290,14 @@ const WithdrawalManagementPage = () => {
 
                                     {/* transaction id and created at */}
                                     <TableCell>
+                                        <div className="space-y-1 ms-2">
+                                            <span className="text-sm font-semibold">{item.id}</span>
+                                        </div>
+                                    </TableCell>
+
+                                    <TableCell>
                                         <div className="space-y-1">
-                                            <span className="font-mono text-sm font-semibold">#{item.id}</span>
-                                            <p className="text-xs text-muted-foreground">
+                                            <p className="text-sm">
                                                 {formatDateTime(item.createdAt)}
                                             </p>
                                         </div>
@@ -307,7 +313,7 @@ const WithdrawalManagementPage = () => {
                                                 <p className="font-medium text-sm text-foreground">
                                                     {item.wallet?.appUser?.fullName || "Người dùng"}
                                                 </p>
-                                                <p className="text-xs text-muted-foreground">
+                                                <p className="text-sm text-muted-foreground">
                                                     {item.wallet?.appUser?.email}
                                                 </p>
                                             </div>
@@ -317,8 +323,7 @@ const WithdrawalManagementPage = () => {
                                     {/* amount */}
                                     <TableCell>
                                         <div className="flex items-center gap-1.5 text-blue-600 font-bold">
-                                            <DollarSign size={16} />
-                                            {formatCurrency ? formatCurrency(item.amount) : `${item.amount} đ`}
+                                            {formatCurrency(item.amount)}
                                         </div>
                                     </TableCell>
 
@@ -326,9 +331,10 @@ const WithdrawalManagementPage = () => {
                                     <TableCell>
                                         <div className="space-y-1">
                                             <p className="text-sm font-semibold text-foreground">
-                                                {item.bankCode} <span className="text-muted-foreground font-normal ml-1">(*{item.bankAccountNo.slice(-4)})</span>
+                                                {item.bankCode} <span className="font-normal ml-1">
+                                                    ({item.bankAccountNo})</span>
                                             </p>
-                                            <p className="text-xs font-medium uppercase text-muted-foreground">
+                                            <p className="text-xs font-medium uppercase">
                                                 {item.bankAccountName}
                                             </p>
                                         </div>

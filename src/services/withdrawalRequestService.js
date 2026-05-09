@@ -50,3 +50,10 @@ export const exportWithdrawal = async ({ data }) => {
     });
     return response.data;
 };
+
+export const countWithdrawalRequest = async ({ status }) => {
+    const response = await API.get(`/api/v1/withdrawal-request/count?status=${status}`, {
+        requiresAuth: true
+    });
+    return response.data;
+};

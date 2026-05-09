@@ -61,7 +61,7 @@ const ResalePostManagementPage = () => {
             const requestPayload = {
                 email: isValidEmail(query) ? query : null,
                 name: !isValidEmail(query) ? query : null,
-                statuses: statusFilter === "ALL" ? ["ALL"] : [statusFilter],
+                statuses: statusFilter === "ALL" ? null : [statusFilter],
                 page: currentPage,
                 size: pageSize
             };
@@ -192,6 +192,7 @@ const ResalePostManagementPage = () => {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="ALL">Tất cả trạng thái</SelectItem>
+                                <SelectItem value={ResalePostStatus.SOLD}>Đã bán</SelectItem>
                                 <SelectItem value={ResalePostStatus.PENDING}>Chờ duyệt</SelectItem>
                                 <SelectItem value={ResalePostStatus.APPROVED}>Đã duyệt</SelectItem>
                                 <SelectItem value={ResalePostStatus.REJECTED}>Từ chối</SelectItem>

@@ -19,6 +19,7 @@ import { countResalePost } from '@/services/resalePostService';
 import { countOrganizerRegistration } from '@/services/organizerRegistrationService';
 import { routes } from '@/config/routes';
 import { formatCurrency } from '@/utils/format';
+import { countWithdrawalRequest } from '@/services/withdrawalRequestService';
 
 export default function OverviewPage() {
     const [loading, setLoading] = useState(true);
@@ -26,6 +27,7 @@ export default function OverviewPage() {
         pendingEvents: 0,
         pendingResales: 0,
         pendingOrganizerRequest: 0,
+        pendingWithdrawalRequests: 0,
         todayRevenue: 0,
         todayNewUsers: 0
     });
@@ -43,11 +45,13 @@ export default function OverviewPage() {
             const startOfDay = `${dateString}T00:00:00`;
             const endOfDay = `${dateString}T23:59:59`;
 
-            const [kpiData, eventsData, resalesData, organizerData] = await Promise.all([
+            const [kpiData, eventsData, resalesData, organizerData, withdrawalData] = await Promise.all([
                 getKpiOverview({ startDate: startOfDay, endDate: endOfDay }),
                 countEvent({ statuses: ['PENDING'] }),
                 countResalePost({ status: 'PENDING' }),
-                countOrganizerRegistration({ status: "PENDING" })
+                countOrganizerRegistration({ status: "PENDING" }),
+                countWithdrawalRequest({ status: "PENDING" })
+
             ]);
 
             setStats({
@@ -55,7 +59,8 @@ export default function OverviewPage() {
                 todayNewUsers: kpiData?.result?.newUsersCount || 0,
                 pendingEvents: eventsData?.result || 0,
                 pendingResales: resalesData?.result || 0,
-                pendingOrganizerRequest: organizerData?.result | 0
+                pendingOrganizerRequest: organizerData?.result || 0,
+                pendingWithdrawalRequests: withdrawalData?.result || 0
             });
         } catch (error) {
             console.error("Lỗi khi tải dữ liệu tổng quan:", error);
@@ -97,7 +102,7 @@ export default function OverviewPage() {
                             <AlertCircle className="w-5 h-5 text-amber-500" />
                             Cần Xử Lý Ngay
                         </h2>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 
                             {/* Card: pending events */}
                             <Card>
@@ -108,7 +113,7 @@ export default function OverviewPage() {
                                             <p className="text-4xl font-bold text-gray-900">{stats.pendingEvents}</p>
                                         </div>
                                         <div className="p-4 bg-amber-50 rounded-full text-amber-600">
-                                            <CalendarClock className="w-8 h-8" />
+                                            <CalendarClock className="w-5 h-5" />
                                         </div>
                                     </div>
                                     <div className="mt-6">
@@ -135,7 +140,7 @@ export default function OverviewPage() {
                                             <p className="text-4xl font-bold text-gray-900">{stats.pendingResales}</p>
                                         </div>
                                         <div className="p-4 bg-green-50 rounded-full text-green-600">
-                                            <Ticket className="w-8 h-8" />
+                                            <Ticket className="w-5 h-5" />
                                         </div>
                                     </div>
                                     <div className="mt-6">
@@ -161,7 +166,7 @@ export default function OverviewPage() {
                                             <p className="text-4xl font-bold text-gray-900">{stats.pendingOrganizerRequest}</p>
                                         </div>
                                         <div className="p-4 bg-blue-50 rounded-full text-blue-600">
-                                            <Notebook className="w-8 h-8" />
+                                            <Notebook className="w-5 h-5" />
                                         </div>
                                     </div>
                                     <div className="mt-6">
@@ -171,6 +176,30 @@ export default function OverviewPage() {
                                             disabled={stats.pendingOrganizerRequest === 0}
                                         >
                                             <Link to={routes.organizerRegistration + "?status=PENDING"}>
+                                                Đi tới duyệt ngay <ArrowRight className="w-4 h-4 ml-2" />
+                                            </Link>
+                                        </Button>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardContent className="p-6">
+                                    <div className="flex items-center justify-between">
+                                        <div className="space-y-2">
+                                            <p className="text-sm font-medium text-muted-foreground">Yêu cầu rút tiền</p>
+                                            <p className="text-4xl font-bold text-gray-900">{stats.pendingWithdrawalRequests}</p>
+                                        </div>
+                                        <div className="p-4 bg-orange-50 rounded-full text-orange-600">
+                                            <DollarSign className="w-5 h-5" />
+                                        </div>
+                                    </div>
+                                    <div className="mt-6">
+                                        <Button
+                                            asChild
+                                            className="w-full bg-orange-600 hover:bg-orange-700 text-white"
+                                            disabled={stats.pendingWithdrawalRequests === 0}
+                                        >
+                                            <Link to={routes.withdrawalRequest + "?status=PENDING"}>
                                                 Đi tới duyệt ngay <ArrowRight className="w-4 h-4 ml-2" />
                                             </Link>
                                         </Button>

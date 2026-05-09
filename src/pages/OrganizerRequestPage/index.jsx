@@ -44,7 +44,7 @@ const OrganizerRequestPage = () => {
     const fromDateFilter = searchParams.get("fromDate") || null;
     const toDateFilter = searchParams.get("toDate") || null;
 
-    const pageSize = 2;
+    const pageSize = 10;
     const [isLoading, setIsLoding] = useState(true);
 
     const [searchValue, setSearchValue] = useState(query);

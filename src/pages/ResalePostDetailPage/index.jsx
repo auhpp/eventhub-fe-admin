@@ -134,8 +134,8 @@ const ResalePostDetailPage = () => {
     };
 
     return (
-        <div className="flex-1 overflow-y-auto p-2 md:p-6 dark:bg-slate-950">
-            <div className="max-w-6xl mx-auto space-y-6">
+        <div className="flex-1 overflow-y-auto dark:bg-slate-950">
+            <div className=" space-y-6">
 
                 {/* Header */}
                 <PostHeader post={post} />

@@ -14,6 +14,7 @@ import ConfirmDialog from '@/components/ConfirmDialog';
 import RejectReasonModal from '@/components/RejectReasonModal';
 import WithdrawalStatusBadge from '@/components/WithdrawalStatusBadge';
 import { WithdrawalStatus } from '@/utils/constant';
+import { toast } from 'sonner';
 
 const statusLabels = {
     PENDING: 'Chờ duyệt',
@@ -88,7 +89,7 @@ const WithdrawalDetailPage = () => {
                     proofImage: file
                 }
             });
-            alert(`Đã cập nhật trạng thái thành: ${statusLabels[status] || status}`);
+            toast.success(`Đã cập nhật trạng thái thành: ${statusLabels[status] || status}`);
             fetchDetailAndWallet();
 
             setIsRejectModalOpen(false);
@@ -96,7 +97,7 @@ const WithdrawalDetailPage = () => {
             setProofImage(null);
             setAdminNote('');
         } catch (err) {
-            alert(err.response?.data?.message || 'Có lỗi xảy ra khi cập nhật.');
+            toast.error(err.response?.data?.message || 'Có lỗi xảy ra khi cập nhật.');
         } finally {
             setIsProcessingAction(false);
         }
@@ -129,7 +130,7 @@ const WithdrawalDetailPage = () => {
     const isProcessable = isPending || isProcessingStatus;
 
     return (
-        <div className="container p-4 md:p-8 max-w-5xl space-y-6">
+        <div className="space-y-6 pb-6">
             {/* Header */}
             <div className="flex items-center gap-4 mb-6">
                 <Button variant="outline" size="icon" onClick={() => navigate(-1)} className="h-9 w-9 flex-shrink-0 hover:bg-slate-100">
@@ -159,7 +160,7 @@ const WithdrawalDetailPage = () => {
                     <Card className="shadow-sm border-slate-200 overflow-hidden">
                         <CardHeader className="bg-slate-50/50 border-b border-slate-100 pb-4">
                             <CardTitle className="text-lg flex items-center gap-2 text-slate-800">
-                                <FileText size={20} className="text-blue-600" /> Thông tin nhận tiền
+                                Thông tin nhận tiền
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-6 space-y-6">
@@ -167,8 +168,11 @@ const WithdrawalDetailPage = () => {
                             {/* basic information */}
                             <div className="space-y-4">
                                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-                                    <span className="text-slate-500 text-sm font-medium">Người yêu cầu (Email)</span>
-                                    <span className="text-slate-800 font-medium">{requestData.wallet?.appUser?.email || "N/A"}</span>
+                                    <span className="text-slate-500 text-sm font-medium">Người yêu cầu</span>
+                                    <div>
+                                        <p className="text-slate-800 font-medium">{requestData.wallet?.appUser?.fullName || "N/A"}</p>
+                                        <p className="text-slate-800">{requestData.wallet?.appUser?.email || "N/A"}</p>
+                                    </div>
                                 </div>
                                 <Separator />
                                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
@@ -180,7 +184,6 @@ const WithdrawalDetailPage = () => {
                             {/* bank details */}
                             <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-4">
                                 <div className="flex items-center gap-2 mb-2 text-slate-800 font-semibold">
-                                    <Landmark size={18} className="text-slate-500" />
                                     Chi tiết tài khoản đích
                                 </div>
 
@@ -248,18 +251,9 @@ const WithdrawalDetailPage = () => {
                                 <div className="flex justify-between items-center text-sm">
                                     <span className="text-slate-500 font-medium">Loại ví</span>
                                     <Badge variant="secondary" className="font-medium bg-slate-100 text-slate-700 hover:bg-slate-100">
-                                        {walletData.type === 'USER_WALLET' ? 'Ví Người Dùng' : 'Ví Ban Tổ Chức'}
+                                        {walletData.type === 'USER_WALLET' ? 'Ví Người Dùng' : 'Ví Nhà Tổ Chức'}
                                     </Badge>
                                 </div>
-                                <div className="flex justify-between items-center text-sm">
-                                    <span className="text-slate-500 font-medium">Trạng thái ví</span>
-                                    {walletData.status === 'ACTIVE' ? (
-                                        <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none font-medium">Đang hoạt động</Badge>
-                                    ) : (
-                                        <Badge variant="destructive" className="font-medium">Bị Khóa</Badge>
-                                    )}
-                                </div>
-
                                 <Separator />
 
                                 <div className="space-y-3">
@@ -284,7 +278,7 @@ const WithdrawalDetailPage = () => {
                     <Card className="shadow-sm border-slate-200">
                         <CardHeader className="bg-slate-50/50 border-b border-slate-100 pb-4">
                             <CardTitle className="text-base text-center text-slate-800">Bảng điều khiển</CardTitle>
-                            <CardDescription className="text-center text-xs mt-1">
+                            <CardDescription className="text-center text-sm mt-1">
                                 Cập nhật tiến độ giải ngân
                             </CardDescription>
                         </CardHeader>
@@ -342,14 +336,14 @@ const WithdrawalDetailPage = () => {
                 </div>
             </div>
 
-=            <RejectReasonModal
+            <RejectReasonModal
                 isOpen={isRejectModalOpen}
                 onClose={() => setIsRejectModalOpen(false)}
                 onConfirm={handleReject}
                 title="Từ chối yêu cầu rút tiền"
             />
 
-=            <ConfirmDialog
+            <ConfirmDialog
                 open={isConfirmModalOpen}
                 onOpenChange={setIsConfirmModalOpen}
                 onConfirm={handleConfirmSuccess}
